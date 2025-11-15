@@ -7,7 +7,7 @@ import { NotificationStyle, NotificationType, TransactionType } from '../Assets/
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer } from 'rxjs';
 import { NotificationService } from '../Notification/notification.service';
-import { environment } from '../../src/environment/environment';
+import { environment } from './src/environment/environment';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleSheetsService {
