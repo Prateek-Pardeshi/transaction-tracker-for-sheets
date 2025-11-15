@@ -1,0 +1,90 @@
+<ng-container #notificationContainer></ng-container>
+
+<!-- notification toast -->
+<ng-template #notificationPopUp let-message="message" let-type="type">
+    <div class="fixed inset-0 flex items-center justify-center"
+        [ngClass]="{'bg-black/40 backdrop-blur-sm z-[9999]': show}">
+        <div #popUpDiv [ngClass]="[
+    type === 'success' ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : '',
+    type === 'error' ? 'bg-gradient-to-br from-rose-500 to-red-600' : '',
+    type === 'info' ? 'bg-gradient-to-br from-sky-500 to-indigo-600' : ''
+  ]" class="relative w-80 rounded-2xl shadow-2xl text-white p-6 pop-in">
+
+            <button class="absolute top-3 right-3 rounded-full bg-white/20 hover:bg-white/30 p-1 transition"
+                (click)="closePopUpNotification()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="flex items-center justify-center mb-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                    <svg *ngIf="type === 'success'" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2l4-4m5 2a9 9 0 11-18 0a9 9 0 0118 0z" />
+                    </svg>
+                    <svg *ngIf="type === 'error1'" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+
+                    <svg *ngIf="type === 'error'" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 512"><path fill="#A82C1F" fill-rule="nonzero" d="M256 0c70.686 0 134.69 28.658 181.016 74.984C483.342 121.31 512 185.314 512 256c0 70.686-28.658 134.69-74.984 181.016C390.69 483.342 326.686 512 256 512c-70.686 0-134.69-28.658-181.016-74.984C28.658 390.69 0 326.686 0 256c0-70.686 28.658-134.69 74.984-181.016C121.31 28.658 185.314 0 256 0z"/><circle fill="#D03827" cx="256" cy="256" r="226.536"/><path fill="#fff" fill-rule="nonzero" d="M275.546 302.281c-.88 22.063-38.246 22.092-39.099-.007-3.779-37.804-13.444-127.553-13.136-163.074.312-10.946 9.383-17.426 20.99-19.898 3.578-.765 7.512-1.136 11.476-1.132 3.987.007 7.932.4 11.514 1.165 11.989 2.554 21.402 9.301 21.398 20.444l-.044 1.117-13.099 161.385zm-19.55 39.211c14.453 0 26.168 11.717 26.168 26.171 0 14.453-11.715 26.167-26.168 26.167s-26.171-11.714-26.171-26.167c0-14.454 11.718-26.171 26.171-26.171z"/></svg>
+
+                    <svg *ngIf="type === 'info'" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M12 18a9 9 0 100-18a9 9 0 000 18z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <h3 class="text-lg font-semibold mb-1">
+                    {{ type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : 'Information' }}
+                </h3>
+                <p class="text-sm text-white/90">{{ message }}</p>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<!-- another toast -->
+
+<ng-template #notificationToast let-message="message" let-type="type">
+    <div #toastDiv
+        class="fixed top-6 right-6 z-[9999] flex items-center gap-3 w-80 rounded-2xl text-white shadow-2xl px-5 py-4 bg-gradient-to-br animate-slide-in"
+        [ngClass]="{
+    'from-emerald-500 to-teal-600': type === 'success',
+    'from-rose-500 to-red-600': type === 'error',
+    'from-sky-500 to-indigo-600': type === 'info'
+  }">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+            <svg *ngIf="type === 'success'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2l4-4m5 2a9 9 0 11-18 0a9 9 0 0118 0z" />
+            </svg>
+
+            <svg *ngIf="type === 'error'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+
+            <svg *ngIf="type === 'info'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M12 18a9 9 0 100-18a9 9 0 000 18z" />
+            </svg>
+        </div>
+
+        <div class="flex flex-col flex-1">
+            <span class="font-semibold text-white">
+                {{ type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : 'Info' }}
+            </span>
+            <span class="text-sm text-white/90">{{ message }}</span>
+        </div>
+    </div>
+</ng-template>

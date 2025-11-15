@@ -1,0 +1,64 @@
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Transactions</h2>
+    <ng-container *ngIf="filteredRecords.length > 0; else noTransactions">
+        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+            <app-transaction-item *ngFor="let tx of filteredRecords; trackBy: trackById"
+                [transaction]="tx"></app-transaction-item>
+        </ul>
+    </ng-container>
+    <ng-template #noTransactions>
+        <p class="text-gray-500 dark:text-gray-400 text-center py-8">No transactions yet.</p>
+    </ng-template>
+    <ng-container *ngIf="filteredRecords.length > 0">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 space-y-2 sm:space-y-0">
+            <!-- Page size dropdown -->
+            <div class="flex items-center space-x-2">
+                <label for="pageSize" class="text-gray-500 text-sm font-medium">
+                    Items per page:
+                </label>
+                <select id="pageSize" [(ngModel)]="pageDetails.maxRecords" (ngModelChange)="onPageSizeChange()"
+                    class="border border-gray-300 rounded-md px-3 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option *ngFor="let size of pageDetails.pageSize">
+                        {{ size }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Pagination buttons -->
+            <nav class="flex justify-center sm:justify-end">
+                <nav class="flex justify-center mt-4">
+                    <ul class="inline-flex items-center space-x-1">
+                        <!-- Previous button -->
+                        <li>
+                            <button (click)="goToPage(pageDetails.currentPage - 1, 'prev')"
+                                [disabled]="pageDetails.currentPage === 1"
+                                class="px-3 py-1 border border-gray-300 rounded-l-md text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                                ‹ Prev
+                            </button>
+                        </li>
+
+                        <!-- Page numbers -->
+                        <li *ngFor="let page of pageDetails.recordsList">
+                            <button (click)="goToPage(page)"
+                                class="px-3 py-1 border border-gray-300 text-gray-500 hover:bg-gray-100"
+                                [class.bg-blue-500]="page == pageDetails.currentPage"
+                                [class.text-white]="page == pageDetails.currentPage"
+                                [class.border-blue-500]="page == pageDetails.currentPage">
+                                {{ page }}
+                            </button>
+                        </li>
+
+                        <!-- Next button -->
+                        <li>
+                            <button (click)="goToPage(pageDetails.currentPage + 1, 'next')"
+                                [disabled]="pageDetails.currentPage === pageDetails.totalPages"
+                                class="px-3 py-1 border border-gray-300 rounded-r-md text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Next ›
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </nav>
+        </div>
+    </ng-container>
+</div>

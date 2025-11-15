@@ -1,0 +1,5 @@
+{
+  "name": "Transaction Tracker for Sheets",
+  "description": "A simple application to track income and expenses. Enter your transactions in the form, and they will be displayed in the table below, simulating data entry into a Google Sheet.",
+  "requestFramePermissions": []
+}

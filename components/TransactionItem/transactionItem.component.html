@@ -1,0 +1,17 @@
+<li class="py-4 flex items-center justify-between space-x-4">
+    <div class="flex items-center space-x-4">
+        <span class="p-2 rounded-full" [ngClass]="[iconBgColor, amountColor]">
+            <app-arrow-up-icon *ngIf="isIncome" class="w-5 h-5"></app-arrow-up-icon>
+            <app-arrow-down-icon *ngIf="!isIncome" class="w-5 h-5"></app-arrow-down-icon>
+        </span>
+        <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ transaction?.description }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ transaction?.category }} &bull; {{ transaction?.date
+                }}</p>
+        </div>
+    </div>
+    <p class="text-sm font-semibold" [ngClass]="amountColor">
+        {{ isIncome ? '+' : '-' }}
+        {{ transaction.amount | currency:'INR' }}
+    </p>
+</li>
