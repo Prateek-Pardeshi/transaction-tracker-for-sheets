@@ -8,6 +8,17 @@ steps:
       - -c
       - npm install
 
+  - name: 'node:20-alpine'
+    env:
+      - 'GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID}'
+      - 'GOOGLE_CLIENT_SECRET=${_GOOGLE_CLIENT_SECRET}'
+    entrypoint: 'sh'
+    args:
+      - -c
+      - |
+          npm install
+          echo "Running set-env.js..."
+          node set-env.js
   # ---------------------------------------------------------
   # Build Angular App (Production)
   # ---------------------------------------------------------
