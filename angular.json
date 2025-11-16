@@ -14,7 +14,12 @@
           "options": {
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "config.json",
+                "input": "src/assets/",
+                "output": "src/assets/"
+              }
             ],
             "outputPath": {
               "base": "./dist",

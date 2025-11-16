@@ -1,4 +1,4 @@
-import { LOCALE_ID, NgModule } from '@angular/core';
+import { APP_INITIALIZER, LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule } from '@angular/common';
@@ -8,7 +8,11 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './components/shared.module';
+import { ConfigService } from './services/config.service';
 
+export function loadConfig(configService: ConfigService) {
+  return () => configService.load();
+}
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -21,7 +25,13 @@ import { SharedModule } from './components/shared.module';
     AppRoutingModule
   ],
   providers: [
-    { provide: LOCALE_ID, useValue: 'en-IN' }
+    { provide: LOCALE_ID, useValue: 'en-IN' },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: loadConfig,
+      deps: [ConfigService],
+      multi: true
+    }
   ],
   bootstrap: [AppComponent],
 })
