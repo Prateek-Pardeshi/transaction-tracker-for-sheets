@@ -7,19 +7,6 @@ steps:
     args:
       - -c
       - npm install
-    secretEnv:
-      - GOOGLE_CLIENT_ID
-      - GOOGLE_CLIENT_SECRET
-
-  # ---------------------------------------------------------
-  # Generate environment.prod.ts using set-env.js
-  # ---------------------------------------------------------
-  - name: 'node:20-alpine'
-    entrypoint: 'node'
-    args: ['set-env.js']
-    secretEnv:
-      - GOOGLE_CLIENT_ID
-      - GOOGLE_CLIENT_SECRET
 
   # ---------------------------------------------------------
   # Build Angular App (Production)
@@ -71,16 +58,6 @@ steps:
 # ---------------------------------------------------------
 images:
   - "${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}"
-
-# ---------------------------------------------------------
-# Secret Manager → Build Step Environment Variables
-# ---------------------------------------------------------
-availableSecrets:
-  secretManager:
-    - versionName: projects/372954632265/secrets/GOOGLE_CLIENT_ID/versions/latest
-      env: GOOGLE_CLIENT_ID
-    - versionName: projects/372954632265/secrets/GOOGLE_CLIENT_SECRET/versions/latest
-      env: GOOGLE_CLIENT_SECRET
 
 # ---------------------------------------------------------
 # Cloud Build Settings
