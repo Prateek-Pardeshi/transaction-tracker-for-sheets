@@ -27,3 +27,4 @@ environment.prod.ts
 .tsbuildinfo
 .env
 config.json
+src/assets/config.json
