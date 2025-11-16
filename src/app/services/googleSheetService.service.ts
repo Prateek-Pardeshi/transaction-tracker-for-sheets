@@ -18,8 +18,8 @@ export class GoogleSheetsService {
 
   get notification(): NotificationService { return this.injector.get(NotificationService); }
 
-  private client_secret = environment.GOOGLE_CLIENT_SECRET;
-  private clientId = environment.GOOGLE_CLIENT_ID;
+  private client_secret = environment.googleClientSecret;
+  private clientId = environment.googleClientId;
   private scope = 'https://www.googleapis.com/auth/spreadsheets';
   private gapiLoaded = false;
   private tokenClient: any;
