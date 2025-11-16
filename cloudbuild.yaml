@@ -15,7 +15,7 @@ steps:
     entrypoint: 'sh'
     args:
       - -c
-      - npm run build --configuration production
+      - npm run build
 
   # ---------------------------------------------------------
   # Build Docker image
