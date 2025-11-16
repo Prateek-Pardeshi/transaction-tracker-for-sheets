@@ -22,4 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+environment.ts
+environment.prod.ts
 .env
