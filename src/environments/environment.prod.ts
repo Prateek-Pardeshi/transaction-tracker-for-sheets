@@ -1,5 +1,5 @@
 export const environment = {
-    PRODUCTION: true,
+    production: true,
     GOOGLE_CLIENT_ID: "",
     GOOGLE_CLIENT_SECRET: "",
 };
