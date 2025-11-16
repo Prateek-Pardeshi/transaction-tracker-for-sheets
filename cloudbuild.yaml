@@ -1,30 +1,24 @@
 steps:
-  # Step 1: Install dependencies
-  - name: 'node:20-alpine'
-    entrypoint: 'sh'
-    args:
-      - '-c'
-      - |
-        npm install
+# Step 1: Install dependencies
+- name: 'node:20-alpine'
+  entrypoint: 'sh'
+  args: ['-c', 'npm install']
 
-  # Step 2: Inject secrets from Secret Manager
-  - name: 'gcr.io/cloud-builders/bash'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
-        echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
+# Step 2: Generate prod environment file with secrets
+- name: 'node:20-alpine'
+  entrypoint: 'node'
+  args: ['set-env.js']
 
-  # Step 3: Build Angular
-  - name: 'node:20-alpine'
-    entrypoint: 'sh'
-    args:
-      - '-c'
-      - |
-        npm run build
+# Step 3: Build Angular app
+- name: 'node:20-alpine'
+  entrypoint: 'sh'
+  args: ['-c', 'npm run build -- --configuration production']
 
-# Bind the secrets from Secret Manager to environment variables
+# Optional: Deploy to GCS, Firebase, or any target
+# - name: 'gcr.io/cloud-builders/gsutil'
+#   args: ['cp', '-r', 'dist/*', 'gs://YOUR_BUCKET_NAME']
+
+# Link Cloud Build environment variables to Secret Manager
 availableSecrets:
   secretManager:
     - versionName: projects/372954632265/secrets/GOOGLE_CLIENT_ID/versions/latest
