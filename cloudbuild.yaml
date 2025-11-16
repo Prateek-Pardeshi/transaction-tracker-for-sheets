@@ -1,30 +1,38 @@
 steps:
+  # ---------------------------------------------------------
   # Install dependencies
+  # ---------------------------------------------------------
   - name: 'node:20-alpine'
     entrypoint: 'sh'
     args:
       - -c
       - npm install
-    env:
-      - GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID)
-      - GOOGLE_CLIENT_SECRET=$(GOOGLE_CLIENT_SECRET)
+    secretEnv:
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
 
-  # Generate environment.prod.ts from secrets
+  # ---------------------------------------------------------
+  # Generate environment.prod.ts using set-env.js
+  # ---------------------------------------------------------
   - name: 'node:20-alpine'
     entrypoint: 'node'
     args: ['set-env.js']
-    env:
-      - GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID)
-      - GOOGLE_CLIENT_SECRET=$(GOOGLE_CLIENT_SECRET)
+    secretEnv:
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
 
-  # Build Angular (production)
+  # ---------------------------------------------------------
+  # Build Angular App (Production)
+  # ---------------------------------------------------------
   - name: 'node:20-alpine'
     entrypoint: 'sh'
     args:
       - -c
       - npm run build --configuration production
 
+  # ---------------------------------------------------------
   # Build Docker image
+  # ---------------------------------------------------------
   - name: gcr.io/cloud-builders/docker
     id: Build
     args:
@@ -33,14 +41,18 @@ steps:
       - "${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}"
       - .
 
+  # ---------------------------------------------------------
   # Push Docker image
+  # ---------------------------------------------------------
   - name: gcr.io/cloud-builders/docker
     id: Push
     args:
       - push
       - "${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}"
 
+  # ---------------------------------------------------------
   # Deploy to Cloud Run
+  # ---------------------------------------------------------
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
     id: Deploy
     entrypoint: gcloud
@@ -54,17 +66,25 @@ steps:
       - "--region=${_DEPLOY_REGION}"
       - '--quiet'
 
+# ---------------------------------------------------------
+# Image Output
+# ---------------------------------------------------------
 images:
   - "${_AR_HOSTNAME}/${_AR_PROJECT_ID}/${_AR_REPOSITORY}/${REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}"
 
+# ---------------------------------------------------------
+# Secret Manager → Build Step Environment Variables
+# ---------------------------------------------------------
 availableSecrets:
   secretManager:
     - versionName: projects/372954632265/secrets/GOOGLE_CLIENT_ID/versions/latest
       env: GOOGLE_CLIENT_ID
-
     - versionName: projects/372954632265/secrets/GOOGLE_CLIENT_SECRET/versions/latest
       env: GOOGLE_CLIENT_SECRET
 
+# ---------------------------------------------------------
+# Cloud Build Settings
+# ---------------------------------------------------------
 options:
   substitutionOption: ALLOW_LOOSE
   logging: CLOUD_LOGGING_ONLY
