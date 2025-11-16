@@ -18,14 +18,39 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "baseUrl": "src",
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@env/*": [
+        "environments/*"
+      ],
+      "@app/*": [
+        "app/*"
+      ],
+      "@components/*": [
+        "app/components/*"
+      ],
+      "@directives/*": [
+        "app/directives/*"
+      ],
+      "@services/*": [
+        "app/services/*"
+      ],
+      "@assets/*": [
+        "assets/*"
       ]
     }
   },
   "files": [
-    "./index.tsx"
+    "./src/main.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ],
   "angularCompilerOptions": {
     "disableTypeScriptVersionCheck": true
