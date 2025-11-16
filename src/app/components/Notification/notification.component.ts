@@ -24,14 +24,9 @@ export class NotificationComponent {
     @ViewChild('popUpDiv', { static: false })
     popUpDivRef!: ElementRef;
 
-    show: boolean = false;
-
     constructor() { }
 
     async showNotification(notificationStyle, message, type, duration: number = 3000): Promise<void> {
-
-        this.show = true;
-
         if (this.notificationContainerRef) {
             this.notificationContainerRef.clear();
 
@@ -64,10 +59,12 @@ export class NotificationComponent {
     }
 
     closePopUpNotification(): void {
-        this.show = false;
         if (this.popUpDivRef) {
             this.popUpDivRef.nativeElement.classList.remove('pop-in');
             this.popUpDivRef.nativeElement.classList.add('pop-out');
         }
+        setTimeout(() => {
+            this.notificationContainerRef && this.notificationContainerRef.clear();
+        }, 300);
     }
 }
