@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ng serve",
     "serve": "ng serve",
-    "build": "ng build --configuration production",
+    "build": "ng build",
     "test": "echo \"No test configured\" && exit 0",
     "lint": "echo \"No lint configured\" && exit 0"
   },
