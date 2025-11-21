@@ -7,7 +7,8 @@ const routes: Routes = [
   { path: 'auth/callback', component: DashboardComponent },
   { path: 'dashboard', component: DashboardComponent },
   { path: 'access-denied', component: AccessDeniedComponent },
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', redirectTo: 'access-denied', pathMatch: 'full' },
+  { path: '**', component: AccessDeniedComponent }
 ];
 
 @NgModule({
