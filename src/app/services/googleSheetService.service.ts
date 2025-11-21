@@ -7,19 +7,19 @@ import { NotificationStyle, NotificationType, TransactionType } from '@assets/En
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer } from 'rxjs';
 import { NotificationService } from './notification.service';
-import { ConfigService } from '@services/config.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleSheetsService {
 
-  constructor(@Inject(Injector) private injector: Injector, private http: HttpClient, private config: ConfigService) {
+  constructor(@Inject(Injector) private injector: Injector, private http: HttpClient) {
     this.startTokenWatcher();
   }
 
   get notification(): NotificationService { return this.injector.get(NotificationService); }
 
-  private client_secret = this.config.googleClientSecret;
-  private clientId = this.config.googleClientId;
+  private client_secret = environment.googleClientSecret;
+  private clientId = environment.googleClientId;
   private scope = 'https://www.googleapis.com/auth/spreadsheets';
   private gapiLoaded = false;
   private tokenClient: any;
