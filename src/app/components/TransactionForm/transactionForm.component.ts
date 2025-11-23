@@ -25,7 +25,7 @@ export class TransactionFormComponent implements OnInit {
 
   constructor() {
     this.category = this.expenseCategories[0];
-    this.description = this.category;
+    // this.description = this.category;
   }
 
   async ngOnInit() {
@@ -37,7 +37,7 @@ export class TransactionFormComponent implements OnInit {
   }
 
   categoryChange(): void {
-    this.description = this.category;
+    // this.description = this.category;
   }
 
   handleTypeChange(): void {

@@ -43,20 +43,19 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
       if (params.get('code')) {
-        this.sheetsService.handleAuthCallback(params.get('code')).subscribe((response: any) => {
-          this.sheetsService.accessToken = response.access_token;
-          localStorage.setItem('token', this.sheetsService.accessToken ? this.sheetsService.accessToken : '');
-          this.notificationService.open(NotificationStyle.TOAST, 'Authentication successful! You can now connect your Google Sheet.', NotificationType.SUCCESS, 4000);
-        },
-          (error) => {
+        this.sheetsService.handleAuthCallback(params.get('code')).subscribe({
+          next: (response: any) => {
+            this.sheetsService.storeToken(response);
+            this.notificationService.open(NotificationStyle.TOAST, 'Authentication successful! You can now connect your Google Sheet.', NotificationType.SUCCESS, 4000);
+            this.sheetsService.handleSheetConnection();
+            this.sheetsService.fetchTransactions();
+          },
+          error: (error) => {
             this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
-          });
-      } else {
-
+          }
+        });
       }
     });
-    this.sheetsService.handleSheetConnection();
-    this.sheetsService.fetchTransactions();
   }
 
   private loadFromLocalStorage(): void {
@@ -71,14 +70,15 @@ export class DashboardComponent implements OnInit {
     this.SpinnerService.startSpinner();
     new Promise<void>((resolve) => {
       if (type === 'create') {
-        this.sheetsService.copySheetFromUrl(event.url, event.name).subscribe((response) => {
-          response;
-          return;
-        },
-          (error) => {
+        this.sheetsService.copySheetFromUrl(event.url, event.name).subscribe({
+          next: (response) => {
+            response;
+            return;
+          },
+          error: (error) => {
             this.notificationService.open(NotificationStyle.POPUP, error, NotificationType.ERROR)
           }
-        );
+        });
       } else {
         this.connectToSheet(event)
       }
@@ -98,20 +98,23 @@ export class DashboardComponent implements OnInit {
     this.notificationService.open(NotificationStyle.TOAST, 'Saving transaction...', NotificationType.INFO, 1000);
     this.SpinnerService.startSpinner();
     new Promise<void>((resolve) => {
-      this.sheetsService.addTransaction(transaction).subscribe(() => {
-        this.transactions.push(transaction);
-        localStorage.setItem('transactions', JSON.stringify(this.transactions));
-        this.SpinnerService.stopSpinner();
-        this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.INFO, 1500);
-      },
-        (error) => {
-          this.SpinnerService.stopSpinner();
-          this.notificationService.open(NotificationStyle.POPUP, error.message ? error.message : error, NotificationType.ERROR);
+      this.sheetsService.addTransaction(transaction).subscribe({
+        next: (resonse) => {
+          if (resonse != null) {
+            this.transactions.push(transaction);
+            this.sheetsService.transactionsSubject.next(this.transactions);
+            localStorage.setItem('transactions', JSON.stringify(this.transactions));
+            this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.SUCCESS, 1500);
+          }
+        },
+        error: (err) => {
+          this.notificationService.open(NotificationStyle.POPUP, err.message ? err.message : err, NotificationType.ERROR);
         }
-      );
+      });
       resolve();
     })
       .finally(() => {
+        this.SpinnerService.stopSpinner();
         this.isSaving = false;
         if (this.txFormComponent) {
           this.txFormComponent.resetForm();

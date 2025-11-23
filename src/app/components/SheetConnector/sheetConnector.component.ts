@@ -18,7 +18,7 @@ export class SheetConnectorComponent {
   @Output() create = new EventEmitter<any>();
 
   public isVisible: boolean = false;
-  public url: string = '';
+  public url: string = SheetURL.DEFAULT_SHEET_URL;
   public icons = icons;
   public copySheetURL = SheetURL.COPY_SHEET_URL;
   public isCopyingDone: boolean = false;

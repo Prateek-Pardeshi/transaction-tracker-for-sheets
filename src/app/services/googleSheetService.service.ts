@@ -23,6 +23,7 @@ export class GoogleSheetsService implements OnInit {
   private apiKey = environment.googleApiKey;
   private scope = 'https://www.googleapis.com/auth/spreadsheets';
   private tokenClient: any;
+  private tokenDrive: any;
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private tokenExpiryTime: number | null = null;
   public transactionsSubject = new Subject<any>();
@@ -43,6 +44,9 @@ export class GoogleSheetsService implements OnInit {
   //#region Sign In & Token Cration
 
   signIn() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('transactions');
+    localStorage.removeItem('sheetURL');
     this.initGapi$().pipe(
       switchMap(() => this.initAuthClient$()),
       switchMap(() => this.requestAccessToken$())
@@ -63,6 +67,7 @@ export class GoogleSheetsService implements OnInit {
       gapi.load('client', async () => {
         try {
           await gapi.client.init({
+            apiKey: environment.googleApiKey,
             discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
           });
           observer.next();
@@ -88,6 +93,22 @@ export class GoogleSheetsService implements OnInit {
             observer.complete();
           },
         });
+
+        // this.tokenDrive = google.accounts.oauth2.initTokenClient({
+        //   client_id: this.clientId,
+        //   scope: 'https://www.googleapis.com/auth/drive.file',
+        //   callback: async (tokenResponse) => {
+        //     if (!tokenResponse.access_token) {
+        //       console.error('Failed to get access token');
+        //       return;
+        //     }
+
+        //     console.log('OAuth Token:', tokenResponse.access_token);
+
+        //     // 2. Set token for gapi.client
+        //     gapi.client.setToken({ access_token: tokenResponse.access_token });
+        //   }
+        // })
 
         observer.next();
         observer.complete();
@@ -122,12 +143,10 @@ export class GoogleSheetsService implements OnInit {
     return this.requestAccessToken$();
   }
 
-  private storeToken(tokenResponse: any) {
+  storeToken(tokenResponse: any) {
     this.accessToken = tokenResponse.access_token;
-    this.setAccessTokenFromStorage()
-    localStorage.setItem('token', atob(this.accessToken));
-    // Set expiry ~1 hour later (3600s typical)
-    this.tokenExpiryTime = Date.now() + 3_600_000;
+    this.setAccessTokenFromStorage();
+    this.tokenExpiryTime = tokenResponse.refresh_token_expires_in;
     this.tokenSubject.next(this.accessToken);
   }
 
@@ -152,7 +171,6 @@ export class GoogleSheetsService implements OnInit {
   }
 
   handleAuthCallback(code: string): Observable<Object> {
-    console.log('apiKey', !this.apiKey ? 'not found' : this.apiKey);
     const body = new URLSearchParams({
       code: code,
       client_id: this.clientId,
@@ -181,6 +199,7 @@ export class GoogleSheetsService implements OnInit {
     if (!this.sheetDetails.sheetId || !this.sheetDetails.sheetName || !this.sheetDetails.sheetURL) {
       this.notification.open(NotificationStyle.TOAST, 'Checking Google Sheet Connection...', NotificationType.INFO);
       this.handleSheetConnection();
+      return of(null);
     }
     if (!this.accessToken) {
       this.notification.open(NotificationStyle.TOAST, 'Requesting access token...', NotificationType.INFO);
@@ -214,7 +233,7 @@ export class GoogleSheetsService implements OnInit {
 
   handleSheetConnection() {
     this.sheetDetails.sheetURL = localStorage.getItem('sheetURL') || '';
-    if (!this.sheetDetails.sheetURL) {
+    if (!this.sheetDetails.sheetURL.match(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/edit(\?.*)?(#.*)?$/)) {
       this.notification.open(NotificationStyle.POPUP, 'No sheet selected, please connect a google sheet first!', NotificationType.ERROR);
       return;
     }
@@ -276,41 +295,63 @@ export class GoogleSheetsService implements OnInit {
         //   observer.next();
         //   observer.complete();
         // });
-        gapi.load('client:auth2', async () => {
+        // gapi.load('client:auth2', async () => {
 
-          // 1. Initialize
-          await gapi.client.init({
-            apiKey: environment.googleApiKey,
-            clientId: environment.googleClientId,
-            discoveryDocs: [
-              'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-            ],
-            scope: 'https://www.googleapis.com/auth/drive.file'
-          });
+        //   // 1. Initialize
+        //   await gapi.client.init({
+        //     apiKey: environment.googleApiKey,
+        //     clientId: environment.googleClientId,
+        //     discoveryDocs: [
+        //       'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+        //     ],
+        //     scope: 'https://www.googleapis.com/auth/drive.file'
+        //   });
 
-          // 2. Sign in (must wait for it)
-          const GoogleAuth = gapi.auth2.getAuthInstance();
-          await GoogleAuth.signIn();
+        //   // 2. Sign in (must wait for it)
+        //   const GoogleAuth = gapi.auth2.getAuthInstance();
+        //   await GoogleAuth.signIn();
 
-          // 3. Ensure token exists
-          const user = GoogleAuth.currentUser.get();
-          const token = user.getAuthResponse().access_token;
+        //   // 3. Ensure token exists
+        //   const user = GoogleAuth.currentUser.get();
+        //   const token = user.getAuthResponse().access_token;
 
-          if (!token) {
-            console.error("User not authenticated");
-            return;
-          }
+        //   if (!token) {
+        //     console.error("User not authenticated");
+        //     return;
+        //   }
 
-          console.log("OAuth Token:", token);  // <-- SHOULD NOT BE EMPTY
+        //   console.log("OAuth Token:", token);  // <-- SHOULD NOT BE EMPTY
 
-          // 4. Copy Google Sheet
-          const response = await gapi.client.drive.files.copy({
-            fileId: sourceId,
-            resource: { name: newName }
-          });
+        //   // 4. Copy Google Sheet
+        //   const response = await gapi.client.drive.files.copy({
+        //     fileId: sourceId,
+        //     resource: { name: newName }
+        //   });
 
-          console.log("Copied File ID:", response.result.id);
-        });
+        //   console.log("Copied File ID:", response.result.id);
+        // });
+
+        if (!this.tokenDrive) {
+          this.initAuthClient$().subscribe({
+            next: (res) => {
+              console.log('res', res);
+              const response = gapi.client.drive.files.copy({
+              fileId: sourceId,
+              resource: { name: newName }
+            });
+            console.log('Copied File ID:', response.result.id);
+            },
+            error: (error) => {
+              console.log('error', error)
+            }
+          })
+        } else {
+          const response = gapi.client.drive.files.copy({
+              fileId: sourceId,
+              resource: { name: newName }
+            });
+            console.log('Copied File ID:', response.result.id);
+        }
 
       } catch (error) {
         this.notification.open(NotificationStyle.POPUP, error, NotificationType.ERROR);
