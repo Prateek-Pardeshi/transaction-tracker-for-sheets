@@ -5,7 +5,7 @@ console.log("🔧 Generating environment.prod.ts...");
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const googleApiKey = GOOGLE_API_KEY;
+const googleApiKey = process.env.GOOGLE_API_KEY;
 
 // Validate secrets
 if (!googleClientId || !googleClientSecret || !googleApiKey) {
