@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
-import { TransactionType } from '@assets/Entities/enum';
+import { TransactionType, Duration } from '@assets/Entities/enum';
 
 @Component({
   selector: 'app-summary',
@@ -12,7 +12,7 @@ export class SummaryComponent implements OnChanges {
   @Input() transactions: Transaction[] = [];
 
   showSummary: boolean = false;
-  duration: string = "year";
+  duration: string = Duration.YEARLY;
   totalIncome: number = 0;
   totalExpense: number = 0;
   balance: number = 0;
@@ -25,12 +25,12 @@ export class SummaryComponent implements OnChanges {
 
   private calculateSummary(): void {
     let tempTransactions = this.transactions;
-    if (this.duration === 'day' || this.duration === 'month') {
+    if (this.duration === Duration.DAILY || this.duration === Duration.MONTHLY) {
       const currentDate = new Date().getDate();
       const currentMonth = new Date().getMonth();
       tempTransactions = this.transactions.filter(t => {
         const txDate = new Date(t.date || '');
-        return this.duration === 'day' ? 
+        return this.duration === Duration.DAILY ? 
         txDate.getDate() === currentDate : 
         txDate.getMonth() === currentMonth;
       });

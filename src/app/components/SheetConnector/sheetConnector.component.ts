@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { icons } from '@assets/icons/icons';
+import { SheetURL } from '@assets/Entities/enum';
 
 @Component({
   selector: 'app-sheet-connector',
@@ -13,11 +14,15 @@ export class SheetConnectorComponent {
   @Input() isConnected: boolean = false;
   @Input() sheetUrl: string = '';
   @Input() isConnecting: boolean = false;
-  @Output() connect = new EventEmitter<string>();
+  @Output() connect = new EventEmitter<any>();
+  @Output() create = new EventEmitter<any>();
 
   public isVisible: boolean = false;
   public url: string = '';
   public icons = icons;
+  public copySheetURL = SheetURL.COPY_SHEET_URL;
+  public isCopyingDone: boolean = false;
+  public name: string = (new Date().getFullYear() + 1).toString();
 
   toggleVisibility() {
     this.isVisible = !this.isVisible;
@@ -26,6 +31,13 @@ export class SheetConnectorComponent {
   async handleConnect() {
     if (!this.url || this.isConnecting) return;
     this.connect.emit(this.url);
+  }
+
+  copyAndCreateSheet() {
+    if(!this.copySheetURL) return;
+    this.isConnected = false;
+    this.isConnecting = false;
+    this.create.emit({url: this.copySheetURL, name: this.name})
   }
 
   handleReset() {

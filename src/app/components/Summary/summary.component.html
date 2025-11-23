@@ -1,31 +1,22 @@
-<div class="grid grid-cols-1 mb-8 pl-2 md:grid-cols-2 gap-4">
+<div class="grid grid-cols-1 mb-7 pl-2 md:grid-cols-2 gap-4">
     <div class="flex items-center space-x-4">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Type:</span>
-        <div class="flex items-center">
-            <input id="monthly" name="type" type="radio" [value]="'day'"  [(ngModel)]="duration" (ngModelChange)="showSummaryDurationWise()"
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
-            <label for="monthly" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Daily</label>
-        </div>
-        <div class="flex items-center">
-            <input id="monthly" name="type" type="radio" [value]="'month'"  [(ngModel)]="duration" (ngModelChange)="showSummaryDurationWise()"
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
-            <label for="monthly" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Monthly</label>
-        </div>
-        <div class="flex items-center">
-            <input id="yearly" name="type" type="radio" [value]="'year'"  [(ngModel)]="duration" (ngModelChange)="showSummaryDurationWise()"
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
-            <label for="yearly" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Yearly</label>
-        </div>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Duration :</span>
+        <select id="duration" name="duration" [(ngModel)]="duration" (change)="showSummaryDurationWise()"
+            class="h-40% w-40% rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2">
+            <option *ngFor="let cat of ['Daily','Monthly','Yearly']" [value]="cat">{{ cat }}</option>
+        </select>
     </div>
     <div class="flex items-center space-x-4">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Summary:</span>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Summary :</span>
         <div class="flex items-center">
-            <input id="showSummary" name="summary" type="radio" [value]="true"  [(ngModel)]="showSummary" (ngModelChange)="showHideSummary(true)"
+            <input id="showSummary" name="summary" type="radio" [value]="true" [(ngModel)]="showSummary"
+                (ngModelChange)="showHideSummary(true)"
                 class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
             <label for="showSummary" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Show Summary</label>
         </div>
         <div class="flex items-center">
-            <input id="hideSummary" name="summary" type="radio" [value]="false"  [(ngModel)]="showSummary" (ngModelChange)="showHideSummary(false)"
+            <input id="hideSummary" name="summary" type="radio" [value]="false" [(ngModel)]="showSummary"
+                (ngModelChange)="showHideSummary(false)"
                 class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
             <label for="hideSummary" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Hide Summary</label>
         </div>
@@ -34,16 +25,18 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Income</h3>
-        <p class="mt-1 text-3xl font-semibold text-green-500">{{ showSummary ? (totalIncome | currency:'INR') : (0.00 | currency:'INR') }}</p>
+        <p class="mt-1 text-3xl font-semibold text-green-500">{{ showSummary ? (totalIncome | currency:'INR') : (0.00 |
+            currency:'INR') }}</p>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</h3>
-        <p class="mt-1 text-3xl font-semibold text-red-500">{{ showSummary ? (totalExpense | currency:'INR') : (0.00 | currency:'INR') }}</p>
+        <p class="mt-1 text-3xl font-semibold text-red-500">{{ showSummary ? (totalExpense | currency:'INR') : (0.00 |
+            currency:'INR') }}</p>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Balance</h3>
         <p class="mt-1 text-3xl font-semibold" [ngClass]="{'text-blue-500': balance >= 0, 'text-red-500': balance < 0}">
-            {{  showSummary ? (balance | currency:'INR') : (0.00 | currency:'INR') }}
+            {{ showSummary ? (balance | currency:'INR') : (0.00 | currency:'INR') }}
         </p>
     </div>
 </div>

@@ -1,16 +1,16 @@
 declare const gapi: any;
 declare const google: any;
 
-import { Inject, Injectable, Injector } from '@angular/core';
+import { Inject, Injectable, Injector, OnInit } from '@angular/core';
 import { Transaction, SheetDetails } from '@assets/Entities/types';
 import { NotificationStyle, NotificationType, TransactionType } from '@assets/Entities/enum';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer, Subject, empty, of } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class GoogleSheetsService {
+export class GoogleSheetsService implements OnInit {
 
   constructor(@Inject(Injector) private injector: Injector, private http: HttpClient) {
     this.startTokenWatcher();
@@ -20,20 +20,43 @@ export class GoogleSheetsService {
 
   private client_secret = environment.googleClientSecret;
   private clientId = environment.googleClientId;
+  private apiKey = environment.googleApiKey;
   private scope = 'https://www.googleapis.com/auth/spreadsheets';
-  private gapiLoaded = false;
   private tokenClient: any;
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private tokenExpiryTime: number | null = null;
+  public transactionsSubject = new Subject<any>();
 
   accessToken: string | null = null;
+  transactions$: Observable<Transaction[]>;
 
   sheetDetails: SheetDetails = {
     sheetURL: '',
     sheetId: '',
-    sheetName: '',
-    sheetData: []
+    sheetName: ''
   };
+
+  ngOnInit() {
+    this.transactions$ = this.transactionsSubject.asObservable();
+  }
+
+  //#region Sign In & Token Cration
+
+  signIn() {
+    this.initGapi$().pipe(
+      switchMap(() => this.initAuthClient$()),
+      switchMap(() => this.requestAccessToken$())
+    ).subscribe({
+      next: (res) => { },
+      error: (err) => {
+        this.notification.open(NotificationStyle.POPUP, err?.message, NotificationType.ERROR);
+      },
+    });
+  }
+
+  signOut() {
+    gapi && gapi.auth2 && gapi.auth2.getAuthInstance().signOut();
+  }
 
   initGapi$(): Observable<void> {
     return new Observable<void>((observer) => {
@@ -65,7 +88,7 @@ export class GoogleSheetsService {
             observer.complete();
           },
         });
-        
+
         observer.next();
         observer.complete();
       } catch (err) {
@@ -81,11 +104,13 @@ export class GoogleSheetsService {
         observer.next(this.accessToken!);
         observer.complete();
       };
-      // this.tokenClient.requestAccessToken({ prompt: 'consent' });
       this.tokenClient.requestCode();
     });
   }
 
+  //#endregion
+
+  //#region Vaidate Token & Token Storage
 
   getValidAccessToken$(): Observable<string> {
     // Token valid for 1 hour (3600s)
@@ -127,6 +152,7 @@ export class GoogleSheetsService {
   }
 
   handleAuthCallback(code: string): Observable<Object> {
+    console.log('apiKey', !this.apiKey ? 'not found' : this.apiKey);
     const body = new URLSearchParams({
       code: code,
       client_id: this.clientId,
@@ -141,73 +167,15 @@ export class GoogleSheetsService {
       })
     });
   }
-  // async initClient() {
-  //   await new Promise<void>((resolve) => {
-  //     gapi.load('client', async () => {
-  //       await gapi.client.init({
-  //         discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-  //       });
-  //       resolve();
-  //     });
-  //   });
 
-  //   this.tokenClient = google.accounts.oauth2.initTokenClient({
-  //     client_id: this.clientId,
-  //     ux_mode: 'popup',
-  //     scope: this.scope,
-  //     callback: (tokenResponse: any) => {
-  //       this.accessToken = tokenResponse.access_token;
-  //     },
-  //   });
-  // }
-
-  // async requestAccessToken(): Promise<void> {
-  //   return new Promise((resolve, reject) => {
-  //     this.tokenClient.callback = (resp: any) => {
-  //       if (resp.error) {
-  //         reject(resp);
-  //         return;
-  //       }
-  //       this.accessToken = resp.access_token;
-  //       resolve();
-  //     };
-
-  //     this.tokenClient.requestAccessToken({ prompt: 'consent' });
-  //   });
-  // }
-
-  signIn() {
-    this.initGapi$().pipe(
-      switchMap(() => this.initAuthClient$()),
-      switchMap(() => this.requestAccessToken$())
-    ).subscribe({
-      next: (res) => {
-        // this.notification.open(NotificationStyle.TOAST, 'Welcome ' + res, NotificationType.SUCCESS);
-      },
-      error: (err) => {
-        this.notification.open(NotificationStyle.POPUP, err?.message, NotificationType.ERROR);
-      },
-    });
-    // this.initGapi$().subscribe((res) => {
-    //   this.initAuthClient$().subscribe((res1) => {
-    //     res1; res;
-    //   });
-    // })
+  validateToken(): Observable<any> {
+    return this.http.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${this.accessToken}`)
   }
 
-  signOut() {
-    gapi.auth2.getAuthInstance().signOut();
-  }
+  //#endregion 
 
-  private parseDate(dateStr: string): Date {
-    const [day, month, year] = dateStr.split('/').map(Number);
-    return new Date(year, month - 1, day);
-  }
 
-  private formatDate(isoDate: string): string {
-    const [year, month, day] = isoDate.split('-');
-    return `${day}/${month}/${year}`;
-  }
+  //#region Google Sheet Actions
 
   addTransaction(values: Transaction): Observable<any> {
     if (!this.sheetDetails.sheetId || !this.sheetDetails.sheetName || !this.sheetDetails.sheetURL) {
@@ -218,28 +186,30 @@ export class GoogleSheetsService {
       this.notification.open(NotificationStyle.TOAST, 'Requesting access token...', NotificationType.INFO);
       this.getValidAccessToken$()
     }
-    // gapi.client.setToken({ access_token: this.accessToken });
-    const range = values.type === TransactionType.INCOME ? `${this.sheetDetails.sheetName}!G:J` : `${this.sheetDetails.sheetName}!B:E`;
-    // const params = {
-    //   spreadsheetId: this.sheetDetails.sheetId,
-    //   range: range,
-    //   valueInputOption: 'USER_ENTERED',
-    // };
+    return this.validateToken().pipe(
+      switchMap((response) => {
+        let token = response
+        const range = values.type === TransactionType.INCOME ? `${this.sheetDetails.sheetName}!G:J` : `${this.sheetDetails.sheetName}!B:E`;
+        const valueRangeBody = {
+          values: [
+            [this.formatDate(values.date), values.amount, values.description, values.category]
+          ],
+        };
 
-    const valueRangeBody = {
-      values: [
-        [this.formatDate(values.date), values.amount, values.description, values.category]
-      ],
-    };
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.sheetDetails.sheetId}/values/${range}:append?valueInputOption=USER_ENTERED`;
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.sheetDetails.sheetId}/values/${range}:append?valueInputOption=USER_ENTERED`;
-
-    const headers = {
-      Authorization: `Bearer ${this.accessToken}`,
-      'Content-Type': 'application/json'
-    };
-    // return gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
-    return this.http.post(url, valueRangeBody, { headers });
+        const headers = {
+          Authorization: `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        };
+        return this.http.post(url, valueRangeBody, { headers });
+      }),
+      catchError((error) => {
+        this.notification.open(NotificationStyle.POPUP, "Token Invlid! Try logging in again", NotificationType.ERROR);
+        this.signIn();
+        return of(null);
+      })
+    )
   }
 
   handleSheetConnection() {
@@ -248,8 +218,7 @@ export class GoogleSheetsService {
       this.notification.open(NotificationStyle.POPUP, 'No sheet selected, please connect a google sheet first!', NotificationType.ERROR);
       return;
     }
-    let sheetIdMatch = this.sheetDetails.sheetURL.match(/spreadsheets\/d\/([^\/]+)\/edit/);
-    this.sheetDetails.sheetId = sheetIdMatch ? sheetIdMatch[1] : '';
+    this.sheetDetails.sheetId = this.getSheetIdFromURL(this.sheetDetails.sheetURL);
     this.sheetDetails.sheetName = 'Transactions';
   }
 
@@ -283,11 +252,89 @@ export class GoogleSheetsService {
       }));
 
       let temptData = [...idata, ...edata];
-      this.sheetDetails.sheetData = temptData.sort((a, b) =>
+      let sheetData = temptData.sort((a, b) =>
         this.parseDate(b.date).getTime() - this.parseDate(a.date).getTime()
       );
-
-      localStorage.setItem('transactions', JSON.stringify(this.sheetDetails.sheetData));
+      this.transactionsSubject.next(sheetData)
+      localStorage.setItem('transactions', JSON.stringify(sheetData));
     });
   }
+
+  copySheetFromUrl(sheetUrl: string, newName: string): Observable<void> {
+    return new Observable<void>((observer) => {
+      try {
+        const sourceId = this.getSheetIdFromURL(sheetUrl);
+        if (!sourceId) {
+          throw new Error('Invalid Google Sheet URL');
+        }
+        // gapi.load('client', async () => {
+        //   await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+        //   await gapi.client.drive.files.copy({
+        //     fileId: sourceId,
+        //     resource: { name: newName }
+        //   });
+        //   observer.next();
+        //   observer.complete();
+        // });
+        gapi.load('client:auth2', async () => {
+
+          // 1. Initialize
+          await gapi.client.init({
+            apiKey: environment.googleApiKey,
+            clientId: environment.googleClientId,
+            discoveryDocs: [
+              'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+            ],
+            scope: 'https://www.googleapis.com/auth/drive.file'
+          });
+
+          // 2. Sign in (must wait for it)
+          const GoogleAuth = gapi.auth2.getAuthInstance();
+          await GoogleAuth.signIn();
+
+          // 3. Ensure token exists
+          const user = GoogleAuth.currentUser.get();
+          const token = user.getAuthResponse().access_token;
+
+          if (!token) {
+            console.error("User not authenticated");
+            return;
+          }
+
+          console.log("OAuth Token:", token);  // <-- SHOULD NOT BE EMPTY
+
+          // 4. Copy Google Sheet
+          const response = await gapi.client.drive.files.copy({
+            fileId: sourceId,
+            resource: { name: newName }
+          });
+
+          console.log("Copied File ID:", response.result.id);
+        });
+
+      } catch (error) {
+        this.notification.open(NotificationStyle.POPUP, error, NotificationType.ERROR);
+      }
+    });
+  }
+
+  //#endregion
+
+  //#region Misc Functions
+
+  private parseDate(dateStr: string): Date {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  private formatDate(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
+  getSheetIdFromURL(url: string) {
+    let sheetIdMatch = url.match(/spreadsheets\/d\/([^\/]+)\/edit/);
+    return sheetIdMatch ? sheetIdMatch[1] : '';
+  }
+  //#endregion
 }

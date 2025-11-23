@@ -13,6 +13,7 @@ steps:
     secretEnv:
       - GOOGLE_CLIENT_ID
       - GOOGLE_CLIENT_SECRET
+      - GOOGLE_API_KEY
 
   # Build Angular
   - name: 'node:20-alpine'
@@ -61,6 +62,8 @@ availableSecrets:
       env: GOOGLE_CLIENT_ID
     - versionName: projects/372954632265/secrets/GOOGLE_CLIENT_SECRET/versions/latest
       env: GOOGLE_CLIENT_SECRET
+    - versionName: projects/372954632265/secrets/GOOGLE_API_KEY/versions/latest
+      env: GOOGLE_API_KEY
 
 options:
   substitutionOption: ALLOW_LOOSE

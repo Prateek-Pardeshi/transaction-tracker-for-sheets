@@ -28,4 +28,4 @@ environment.prod.ts
 .env
 config.json
 src/assets/config.json
-.angular/cache/18.1.0/app/.tsbuildinfo
+.angular/*

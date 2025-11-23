@@ -1,22 +1,57 @@
+<style>
+    /* #description:after{
+  display: inline-block;
+  content: "\00d7"; /* This will render the 'X' *
+} */
+</style>
+
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add New Transaction</h2>
     <form #txForm="ngForm" (ngSubmit)="handleSubmit()">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-            <div class="md:col-span-2">
+            <div class="relative">
+                <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Category
+                </label>
+                <input type="text" id="category" name="category" [(ngModel)]="category" (input)="filterCategories()" (click)="filterCategories()" (blur)="onBlur()"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm
+           focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700
+           text-gray-900 dark:text-white p-2" placeholder="Select or type a category" [disabled]="isSaving"
+                    autocomplete="true" />
+
+                <button class="absolute inset-y-10 h-1 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-400"
+                    (click)="clearText(false)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </button>
+
+                <!-- Suggestions Dropdown -->
+                <ul *ngIf="showSuggestions && filteredCategories.length > 0" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
+             rounded-md shadow-lg max-h-60 overflow-auto">
+                    <li *ngFor="let cat of filteredCategories" (mousedown)="selectCategory(cat)"
+                        class="cursor-pointer px-3 py-2 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-600">
+                        {{ cat }}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="md:col-span-2 relative">
                 <label for="description"
                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                 <input type="text" id="description" name="description" [(ngModel)]="description"
                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2"
                     placeholder="e.g. Coffee" required [disabled]="isSaving" />
-            </div>
-            <div>
-                <label for="category"
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                <select id="category" name="category" [(ngModel)]="category" (change)="categoryChange()"
-                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2"
-                    required [disabled]="isSaving">
-                    <option *ngFor="let cat of currentCategories" [value]="cat">{{ cat }}</option>
-                </select>
+                <button class="absolute inset-y-10 h-1 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-400"
+                    (click)="clearText(true)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </button>
             </div>
             <div>
                 <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>

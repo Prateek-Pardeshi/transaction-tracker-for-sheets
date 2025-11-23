@@ -5,12 +5,14 @@ console.log("🔧 Generating environment.prod.ts...");
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const googleApiKey = GOOGLE_API_KEY;
 
 // Validate secrets
-if (!googleClientId || !googleClientSecret) {
+if (!googleClientId || !googleClientSecret || !googleApiKey) {
   console.error("❌ ERROR: Missing required environment variables:");
   console.error("GOOGLE_CLIENT_ID:", googleClientId ? "OK" : "MISSING");
   console.error("GOOGLE_CLIENT_SECRET:", googleClientSecret ? "OK" : "MISSING");
+  console.error("GOOGLE_API_KEY:", googleApiKey ? "OK" : "MISSING");
   process.exit(1);
 }
 
@@ -25,6 +27,7 @@ const envFileContent = `
 
 export const environment = {
   production: true,
+  googleApiKey: '${googleApiKey}',
   googleClientId: '${googleClientId}',
   googleClientSecret: '${googleClientSecret}'
 };

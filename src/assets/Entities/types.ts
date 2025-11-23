@@ -13,5 +13,4 @@ export interface SheetDetails {
   sheetURL: string;
   sheetId: string;
   sheetName: string;
-  sheetData: Transaction[];
 }

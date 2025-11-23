@@ -29,8 +29,8 @@ export class DashboardComponent implements OnInit {
   data: any;
 
   constructor(
-    private injector: Injector, 
-    private router: Router, 
+    private injector: Injector,
+    private router: Router,
     private route: ActivatedRoute
   ) {
     this.loadFromLocalStorage();
@@ -40,22 +40,23 @@ export class DashboardComponent implements OnInit {
   get notificationService(): NotificationService { return this.injector.get(NotificationService); }
   get SpinnerService(): SpinnerService { return this.injector.get(SpinnerService); }
 
-  ngOnInit(): void {    
-    this.route.queryParams.subscribe(params => {
-      if(params['code']) {
-        this.sheetsService.handleAuthCallback(params['code']).subscribe((response: any) => {
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      if (params.get('code')) {
+        this.sheetsService.handleAuthCallback(params.get('code')).subscribe((response: any) => {
           this.sheetsService.accessToken = response.access_token;
           localStorage.setItem('token', this.sheetsService.accessToken ? this.sheetsService.accessToken : '');
           this.notificationService.open(NotificationStyle.TOAST, 'Authentication successful! You can now connect your Google Sheet.', NotificationType.SUCCESS, 4000);
-        });
+        },
+          (error) => {
+            this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
+          });
       } else {
-        this.sheetsService.handleSheetConnection();
-        this.sheetsService.fetchTransactions();
+
       }
     });
-    // !this.sheetsService.accessToken && this.sheetsService.signIn();
-    // this.sheetsService.handleSheetConnection();
-    // this.sheetsService.fetchTransactions();
+    this.sheetsService.handleSheetConnection();
+    this.sheetsService.fetchTransactions();
   }
 
   private loadFromLocalStorage(): void {
@@ -64,20 +65,25 @@ export class DashboardComponent implements OnInit {
     this.transactions = storedTransactions ? JSON.parse(storedTransactions) : initialTransactions;
   }
 
-  handleConnectSheet(url: string): void {
-    if (!url) return;
+  handleConnectSheet(event: any, type: string): void {
+    if (!event) return;
     this.isConnecting = true;
     this.SpinnerService.startSpinner();
     new Promise<void>((resolve) => {
-      this.sheetUrl = url;
-        this.isConnected = true;
-        this.sheetsService.sheetDetails.sheetURL = url;
-        localStorage.setItem('sheetURL', url);
-        this.sheetsService.handleSheetConnection();
-        this.sheetsService.fetchTransactions();
-        this.SpinnerService.stopSpinner();
-        this.notificationService.open(NotificationStyle.POPUP, 'Successfully connected to sheet! Transactions will now be saved.', NotificationType.SUCCESS, 4000);
-        resolve();
+      if (type === 'create') {
+        this.sheetsService.copySheetFromUrl(event.url, event.name).subscribe((response) => {
+          response;
+          return;
+        },
+          (error) => {
+            this.notificationService.open(NotificationStyle.POPUP, error, NotificationType.ERROR)
+          }
+        );
+      } else {
+        this.connectToSheet(event)
+      }
+
+      resolve();
     }).then(() => {
       if (this.sheetConnectorComponent) {
         this.sheetConnectorComponent.isVisible = false;
@@ -91,20 +97,36 @@ export class DashboardComponent implements OnInit {
     this.isSaving = true;
     this.notificationService.open(NotificationStyle.TOAST, 'Saving transaction...', NotificationType.INFO, 1000);
     this.SpinnerService.startSpinner();
-    new Promise<void>((resolve) => {      
+    new Promise<void>((resolve) => {
       this.sheetsService.addTransaction(transaction).subscribe(() => {
-          this.transactions.push(transaction);
-          localStorage.setItem('transactions', JSON.stringify(this.transactions));
+        this.transactions.push(transaction);
+        localStorage.setItem('transactions', JSON.stringify(this.transactions));
+        this.SpinnerService.stopSpinner();
+        this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.INFO, 1500);
+      },
+        (error) => {
           this.SpinnerService.stopSpinner();
-          this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.INFO, 1500);
+          this.notificationService.open(NotificationStyle.POPUP, error.message ? error.message : error, NotificationType.ERROR);
         }
       );
       resolve();
-    }).finally(() => {
-      this.isSaving = false;
-      if (this.txFormComponent) {
-        this.txFormComponent.resetForm();
-      }
-    });
+    })
+      .finally(() => {
+        this.isSaving = false;
+        if (this.txFormComponent) {
+          this.txFormComponent.resetForm();
+        }
+      });
+  }
+
+  connectToSheet(url) {
+    this.sheetUrl = url;
+    this.isConnected = true;
+    this.sheetsService.sheetDetails.sheetURL = url;
+    localStorage.setItem('sheetURL', url);
+    this.sheetsService.handleSheetConnection();
+    this.sheetsService.fetchTransactions();
+    this.SpinnerService.stopSpinner();
+    this.notificationService.open(NotificationStyle.POPUP, 'Successfully connected to sheet! Transactions will now be saved.', NotificationType.SUCCESS, 4000);
   }
 }
