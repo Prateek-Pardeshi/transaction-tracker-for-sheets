@@ -1,9 +1,10 @@
 import { AfterViewInit, Component, Inject, Injector, OnInit, ViewChild } from '@angular/core';
 import { GoogleSheetsService } from './services/googleSheetService.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { NotificationComponent } from './components/Notification/notification.component';
 import { NotificationService } from './services/notification.service';
+import { NotificationStyle, NotificationType } from '@assets/Entities/enum';
 import { SpinnerService } from './services/spinner.service';
 import { SpinnerComponent } from './components/Spinner/spinner.component';
 
@@ -14,7 +15,7 @@ import { SpinnerComponent } from './components/Spinner/spinner.component';
 })
 export class AppComponent implements OnInit, AfterViewInit {
 
-  constructor(@Inject(Injector) private injector: Injector, private router: Router, private googleSheet: GoogleSheetsService) { }
+  constructor(@Inject(Injector) private injector: Injector, private router: Router, private route: ActivatedRoute, private googleSheet: GoogleSheetsService) { }
 
   get sheetsService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService); }
   get notificationService(): NotificationService { return this.injector.get(NotificationService); }
@@ -24,14 +25,21 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(SpinnerComponent) private spinnerComponent!: SpinnerComponent;
 
   ngOnInit(): void {
-    // let isLoggedIn = localStorage.getItem('token') || null;
-    
-    // // this.router.navigate(['/access-denied']);
-    // if (!isLoggedIn) {
-    //   this.sheetsService.signIn();
-    // } else {
+    const token = new URL(window.location.href).searchParams.get('code');
+    if(token){
+      this.sheetsService.handleAuthCallback(token).subscribe({
+          next: (response: any) => {
+            this.sheetsService.storeToken(response);
+            this.notificationService.open(NotificationStyle.TOAST, 'Authentication successful! You can now connect your Google Sheet.', NotificationType.SUCCESS, 4000);
+            this.router.navigate(['/dashboard']);
+          },
+          error: (error) => {
+            this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
+          }
+        });
+    } else {
       this.router.navigate(['/dashboard']);
-    // }
+    }
   }
 
   ngAfterViewInit(): void {

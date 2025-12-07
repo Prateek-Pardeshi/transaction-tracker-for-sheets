@@ -54,6 +54,7 @@ export class TransactionFormComponent implements OnInit {
 
   selectCategory(cat: string) {
     this.category = cat;
+    this.description = cat;
     this.filteredCategories = [];
     this.categoryChange(); 
     this.showSuggestions = false;
@@ -64,13 +65,14 @@ export class TransactionFormComponent implements OnInit {
     this.showSuggestions = false;
   }
 
-  clearText(flag) {
+  clearText(event, flag) {
     if(flag)
       this.description = ""; 
     else {
       this.category = ""; 
       this.filterCategories();
-    }      
+    }  
+    event.currentTarget.previousSibling.focus()    
   }
 
   async handleSubmit() {

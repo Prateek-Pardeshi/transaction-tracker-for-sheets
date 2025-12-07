@@ -257,7 +257,7 @@ export class GoogleSheetsService implements OnInit {
   }
 
   handleSheetConnection() {
-    this.sheetDetails.sheetURL = localStorage.getItem('sheetURL') || '';
+    this.sheetDetails.sheetURL = localStorage.getItem('sheetURL') || SheetURL.DEFAULT_SHEET_URL;
     if (!this.sheetDetails.sheetURL.match(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/edit(\?.*)?(#.*)?$/)) {
       this.notification.open(NotificationStyle.POPUP, 'No sheet selected, please connect a google sheet first!', NotificationType.ERROR);
       return;

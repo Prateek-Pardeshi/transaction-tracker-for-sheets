@@ -43,24 +43,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   get SpinnerService(): SpinnerService { return this.injector.get(SpinnerService); }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
-      if (params.get('code')) {
-        this.sheetsService.handleAuthCallback(params.get('code')).subscribe({
-          next: (response: any) => {
-            this.sheetsService.storeToken(response);
-            this.notificationService.open(NotificationStyle.TOAST, 'Authentication successful! You can now connect your Google Sheet.', NotificationType.SUCCESS, 4000);
-            this.sheetsService.handleSheetConnection();
-            this.sheetsService.fetchTransactions();
-          },
-          error: (error) => {
-            this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
-          }
-        });
-      } else {
-        this.sheetsService.handleSheetConnection();
-        this.sheetsService.fetchTransactions();
-      }
-    });
+    this.sheetsService.handleSheetConnection();
+    this.sheetsService.fetchTransactions();
     this.transactionsSubscription = this.sheetsService.transactionsSubject.subscribe((data: Transaction[]) => {
       this.transactions = data && data.length > 0 ? data : this.transactions;
     });
