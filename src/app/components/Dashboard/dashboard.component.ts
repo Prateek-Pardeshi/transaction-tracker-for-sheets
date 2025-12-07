@@ -1,4 +1,4 @@
-import { Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
 
@@ -8,6 +8,7 @@ import { NotificationService } from '@services/notification.service';
 import { NotificationStyle, NotificationType } from '@assets/Entities/enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SpinnerService } from '@services/spinner.service';
+import { Subscription } from 'rxjs';
 
 const initialTransactions: Transaction[] = [];
 
@@ -17,7 +18,7 @@ const initialTransactions: Transaction[] = [];
   templateUrl: './dashboard.component.html'
 })
 
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   @ViewChild(TransactionFormComponent) private txFormComponent!: TransactionFormComponent;
   @ViewChild(SheetConnectorComponent) private sheetConnectorComponent!: SheetConnectorComponent;
 
@@ -27,6 +28,7 @@ export class DashboardComponent implements OnInit {
   isConnecting: boolean = false;
   isSaving: boolean = false;
   data: any;
+  transactionsSubscription!: Subscription;
 
   constructor(
     private injector: Injector,
@@ -54,7 +56,13 @@ export class DashboardComponent implements OnInit {
             this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
           }
         });
+      } else {
+        this.sheetsService.handleSheetConnection();
+        this.sheetsService.fetchTransactions();
       }
+    });
+    this.transactionsSubscription = this.sheetsService.transactionsSubject.subscribe((data: Transaction[]) => {
+      this.transactions = data && data.length > 0 ? data : this.transactions;
     });
   }
 
@@ -130,6 +138,10 @@ export class DashboardComponent implements OnInit {
     this.sheetsService.handleSheetConnection();
     this.sheetsService.fetchTransactions();
     this.SpinnerService.stopSpinner();
-    this.notificationService.open(NotificationStyle.POPUP, 'Successfully connected to sheet! Transactions will now be saved.', NotificationType.SUCCESS, 4000);
+    this.notificationService.open(NotificationStyle.TOAST, 'Successfully connected to sheet! Transactions will now be saved.', NotificationType.SUCCESS, 4000);
+  }
+
+  ngOnDestroy(): void {
+    this.transactionsSubscription.unsubscribe();
   }
 }

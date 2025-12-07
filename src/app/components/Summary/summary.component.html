@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 mb-7 pl-2 md:grid-cols-2 gap-4">
+<div class="grid grid-cols-1 mb-6 pl-2 md:grid-cols-3 gap-4">
     <div class="flex items-center space-x-4">
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Duration :</span>
         <select id="duration" name="duration" [(ngModel)]="duration" (change)="showSummaryDurationWise()"
@@ -7,7 +7,77 @@
         </select>
     </div>
     <div class="flex items-center space-x-4">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Summary :</span>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">View :</span>
+        <div class="flex items-center">
+            <input name="view" type="radio" [(ngModel)]="viewSummary" [value]="false" (ngModelChange)="setView(false)"
+                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 130 130" class="pl-2">
+                <!-- Rupee symbol in center circle -->
+                <path fill="#66bb6a" stroke="#66bb6a" stroke-width="0.5"
+                    d="M54 58h12v2.5H54zm0 4h12v2c0 3.5-2.5 6.5-6 6.5s-6-3-6-6.5zm0-8h14v2.5H54zm3 16l8 8h-4l-8-8h4z" />
+                <path fill="#ffffff"
+                    d="M60.264 49.385a18.351 18.351 0 1 0 18.351 18.351 18.371 18.371 0 0 0-18.351-18.351zm0 33.2a14.851 14.851 0 1 1 14.851-14.85 14.867 14.867 0 0 1-14.851 14.851z" />
+                <!-- Pie chart slices -->
+                <path fill="#ffffff"
+                    d="M67.736 4.557a1.751 1.751 0 0 0-1.75 1.75V42.43a25.842 25.842 0 0 0-3.972-.578V13.778a1.751 1.751 0 0 0-1.75-1.75 55.708 55.708 0 1 0 55.708 55.708 1.751 1.751 0 0 0-1.75-1.75H86.148a25.842 25.842 0 0 0-.578-3.972h36.123a1.751 1.751 0 0 0 1.75-1.75A55.77 55.77 0 0 0 67.736 4.557zm14.977 63.179a22.449 22.449 0 1 1-22.449-22.449 22.474 22.474 0 0 1 22.449 22.449zm-22.449 52.207a52.208 52.208 0 0 1-1.75-104.386v26.295a25.946 25.946 0 1 0 27.634 27.634h26.3a52.269 52.269 0 0 1-52.184 50.457zm24.25-61.429a26.082 26.082 0 0 0-15.028-15.028v-35.4a52.272 52.272 0 0 1 50.428 50.428z" />
+            </svg>
+        </div>
+        <div class="flex items-center">
+            <input name="view" type="radio" [(ngModel)]="viewSummary" [value]="true" (ngModelChange)="setView(true)"
+                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
+            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="50" height="50"
+                style="shape-rendering:geometricPrecision;text-rendering:geometricPrecision;image-rendering:optimizeQuality;fill-rule:evenodd;clip-rule:evenodd"
+                viewBox="0 0 2048 2048">
+                <defs>
+                    <style>
+                        .fil0,
+                        .fil1,
+                        .fil2 {
+                            fill: #ffffff
+                        }
+
+                        .fil0,
+                        .fil2 {
+                            fill-rule: nonzero
+                        }
+
+                        .fil2 {
+                            fill: #66bb6a
+                        }
+                    </style>
+                </defs>
+                <g id="Layer_x0020_1">
+                    <path class="fil0"
+                        d="M279.999 448.001h1488c13.254 0 24 10.746 24 24v1104c0 13.254-10.746 24-24 24h-1488c-13.254 0-24-10.746-24-24v-1104c0-13.254 10.746-24 24-24zm1464 48h-1440v1056h1440v-1056z" />
+                    <path class="fil0"
+                        d="M279.999 732.239c-13.254 0-24 10.746-24 24s10.746 24 24 24h1488c13.254 0 24-10.746 24-24s-10.746-24-24-24h-1488z" />
+                    <g id="_475139928">
+                        <circle id="_475103928" class="fil1" cx="448" cy="614.121" r="32" />
+                        <circle id="_475103808" class="fil1" cx="640.38" cy="614.121" r="32" />
+                        <circle id="_475104048" class="fil1" cx="832.76" cy="614.121" r="32" />
+                    </g>
+                    <g id="_475139304">
+                        <path id="_475139832" class="fil2"
+                            d="M480 886.119h255.999c13.254 0 24 10.746 24 24v192c0 13.254-10.746 24-24 24H480c-13.254 0-24-10.746-24-24v-192c0-13.254 10.746-24 24-24zm231.999 48H504v144h207.999v-144z" />
+                        <path id="_475139904" class="fil2"
+                            d="M896 886.119h255.999c13.254 0 24 10.746 24 24v192c0 13.254-10.746 24-24 24H896c-13.254 0-24-10.746-24-24v-192c0-13.254 10.746-24 24-24zm231.999 48H920v144h207.999v-144z" />
+                        <path id="_475139568" class="fil2"
+                            d="M1312 886.119h255.999c13.254 0 24 10.746 24 24v192c0 13.254-10.746 24-24 24H1312c-13.254 0-24-10.746-24-24v-192c0-13.254 10.746-24 24-24zm231.999 48H1336v144h207.999v-144z" />
+                        <g>
+                            <path id="_475139808" class="fil2"
+                                d="M480 1206.12h255.999c13.254 0 24 10.746 24 24v192c0 13.254-10.746 24-24 24H480c-13.254 0-24-10.746-24-24v-192c0-13.254 10.746-24 24-24zm231.999 48H504v144h207.999v-144z" />
+                            <path id="_475139616" class="fil2"
+                                d="M896 1206.12h255.999c13.254 0 24 10.746 24 24v192c0 13.254-10.746 24-24 24H896c-13.254 0-24-10.746-24-24v-192c0-13.254 10.746-24 24-24zm231.999 48H920v144h207.999v-144z" />
+                            <path id="_475139712" class="fil2"
+                                d="M1312 1206.12h255.999c13.254 0 24 10.746 24 24v192c0 13.254-10.746 24-24 24H1312c-13.254 0-24-10.746-24-24v-192c0-13.254 10.746-24 24-24zm231.999 48H1336v144h207.999v-144z" />
+                        </g>
+                    </g>
+                </g>
+                <path style="fill:none" d="M0 0h2048v2048H0z" />
+            </svg>
+        </div>
+    </div>
+    <div class="flex items-center space-x-4">
         <div class="flex items-center">
             <input id="showSummary" name="summary" type="radio" [value]="true" [(ngModel)]="showSummary"
                 (ngModelChange)="showHideSummary(true)"
@@ -22,21 +92,37 @@
         </div>
     </div>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Income</h3>
-        <p class="mt-1 text-3xl font-semibold text-green-500">{{ showSummary ? (totalIncome | currency:'INR') : (0.00 |
-            currency:'INR') }}</p>
+
+<ng-container #viewContainer></ng-container>
+
+<ng-template #summaryTemplate>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Income</h3>
+            <p class="mt-1 text-3xl font-semibold text-green-500">{{ showSummary ? (totalIncome | currency:'INR') :
+                (0.00 |
+                currency:'INR') }}</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</h3>
+            <p class="mt-1 text-3xl font-semibold text-red-500">{{ showSummary ? (totalExpense | currency:'INR') : (0.00
+                |
+                currency:'INR') }}</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Balance</h3>
+            <p class="mt-1 text-3xl font-semibold"
+                [ngClass]="{'text-blue-500': balance >= 0, 'text-red-500': balance < 0}">
+                {{ showSummary ? (balance | currency:'INR') : (0.00 | currency:'INR') }}
+            </p>
+        </div>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</h3>
-        <p class="mt-1 text-3xl font-semibold text-red-500">{{ showSummary ? (totalExpense | currency:'INR') : (0.00 |
-            currency:'INR') }}</p>
+</ng-template>
+
+<ng-template #chartTemplate>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <app-charts></app-charts>
+        </div>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Balance</h3>
-        <p class="mt-1 text-3xl font-semibold" [ngClass]="{'text-blue-500': balance >= 0, 'text-red-500': balance < 0}">
-            {{ showSummary ? (balance | currency:'INR') : (0.00 | currency:'INR') }}
-        </p>
-    </div>
-</div>
+</ng-template>

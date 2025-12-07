@@ -14,7 +14,7 @@ import { SpinnerComponent } from './components/Spinner/spinner.component';
 })
 export class AppComponent implements OnInit, AfterViewInit {
 
-  constructor(@Inject(Injector) private injector: Injector, private router: Router) { }
+  constructor(@Inject(Injector) private injector: Injector, private router: Router, private googleSheet: GoogleSheetsService) { }
 
   get sheetsService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService); }
   get notificationService(): NotificationService { return this.injector.get(NotificationService); }
@@ -24,14 +24,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(SpinnerComponent) private spinnerComponent!: SpinnerComponent;
 
   ngOnInit(): void {
-    let isLoggedIn = localStorage.getItem('token') || null;
+    // let isLoggedIn = localStorage.getItem('token') || null;
     
-    // this.router.navigate(['/access-denied']);
-    if (!isLoggedIn) {
-      this.sheetsService.signIn();
-    } else {
+    // // this.router.navigate(['/access-denied']);
+    // if (!isLoggedIn) {
+    //   this.sheetsService.signIn();
+    // } else {
       this.router.navigate(['/dashboard']);
-    }
+    // }
   }
 
   ngAfterViewInit(): void {

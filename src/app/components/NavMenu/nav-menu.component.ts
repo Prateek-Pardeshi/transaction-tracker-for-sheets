@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { GoogleSheetsService } from '@services/googleSheetService.service';
 
 @Component({
   selector: 'app-nav-menu',
@@ -8,5 +9,21 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './nav-menu.component.html'
 })
 export class NavMenuComponent {
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private inject: Injector) { }
+
+  get sheetService(): GoogleSheetsService { return this.inject.get(GoogleSheetsService); }
+
+  svgAction(action: string): void {
+    switch (action) {
+      case 'top':
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        break;
+      case 'bottom':
+        window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
+        break;
+      case 'login':
+        this.sheetService.signIn();
+        break;
+    }
+  }
 }

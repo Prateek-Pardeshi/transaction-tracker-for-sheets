@@ -1,19 +1,28 @@
 declare const gapi: any;
 declare const google: any;
 
-import { Inject, Injectable, Injector, OnInit } from '@angular/core';
+import { Inject, Injectable, Injector, OnInit, inject } from '@angular/core';
 import { Transaction, SheetDetails } from '@assets/Entities/types';
 import { NotificationStyle, NotificationType, TransactionType } from '@assets/Entities/enum';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer, Subject, empty, of } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer, Subject, of, Subscription } from 'rxjs';
+import { Auth, GoogleAuthProvider, signInWithPopup, user, User } from '@angular/fire/auth';
 import { NotificationService } from './notification.service';
 import { environment } from '../../environments/environment';
+import { SheetURL } from '@assets/Entities/enum';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleSheetsService implements OnInit {
 
   constructor(@Inject(Injector) private injector: Injector, private http: HttpClient) {
-    this.startTokenWatcher();
+    // this.user$.subscribe(async (currentUser) => {
+    //   if (currentUser) {
+    //     const token = await currentUser.getIdToken();
+    //     console.log('Logged in silently! Token:', token);
+    //   } else {
+    //     console.log('Not logged in');
+    //   }
+    // });
   }
 
   get notification(): NotificationService { return this.injector.get(NotificationService); }
@@ -27,7 +36,9 @@ export class GoogleSheetsService implements OnInit {
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private tokenExpiryTime: number | null = null;
   public transactionsSubject = new Subject<any>();
+  // private auth: Auth = inject(Auth);
 
+  // user$: Observable<User | null> = user(this.auth);
   accessToken: string | null = null;
   transactions$: Observable<Transaction[]>;
 
@@ -43,10 +54,17 @@ export class GoogleSheetsService implements OnInit {
 
   //#region Sign In & Token Cration
 
-  signIn() {
+  async signIn() {
     localStorage.removeItem('token');
     localStorage.removeItem('transactions');
     localStorage.removeItem('sheetURL');
+    const provider = new GoogleAuthProvider();
+    // try {
+    //   await signInWithPopup(this.auth, provider);
+    //   // No need to manually redirect; the user$ stream will update automatically
+    // } catch (error) {
+    //   console.error('Login failed', error);
+    // }
     this.initGapi$().pipe(
       switchMap(() => this.initAuthClient$()),
       switchMap(() => this.requestAccessToken$())
@@ -56,6 +74,16 @@ export class GoogleSheetsService implements OnInit {
         this.notification.open(NotificationStyle.POPUP, err?.message, NotificationType.ERROR);
       },
     });
+  }
+
+  async getToken(): Promise<string | null> {
+    // const currentUser = this.auth.currentUser;
+    // if (currentUser) {
+    //   // forceRefresh = false (default) means it uses the cached token if valid
+    //   // It handles the refresh silently if expired
+    //   return await currentUser.getIdToken(false);
+    // }
+    return null;
   }
 
   signOut() {
@@ -82,40 +110,36 @@ export class GoogleSheetsService implements OnInit {
   initAuthClient$(): Observable<void> {
     return new Observable<void>((observer) => {
       try {
+
+        google.accounts.id.initialize({
+          client_id: this.clientId,
+          callback: (response: any) => this.handleIdToken(response),
+          auto_select: true, // <--- CRITICAL: Tries to sign in automatically
+          cancel_on_tap_outside: false
+        });
+
         this.tokenClient = google.accounts.oauth2.initCodeClient({
           client_id: this.clientId,
           ux_mode: 'redirect', //'popup'
           redirect_uri: window.location.origin + '/auth/callback',
-          scope: this.scope,
+          scope: 'https://www.googleapis.com/auth/calendar.readonly',//this.scope,
           callback: (tokenResponse: any) => {
             this.storeToken(tokenResponse);
             observer.next();
             observer.complete();
           },
+          auto_select: true
         });
-
-        // this.tokenDrive = google.accounts.oauth2.initTokenClient({
-        //   client_id: this.clientId,
-        //   scope: 'https://www.googleapis.com/auth/drive.file',
-        //   callback: async (tokenResponse) => {
-        //     if (!tokenResponse.access_token) {
-        //       console.error('Failed to get access token');
-        //       return;
-        //     }
-
-        //     console.log('OAuth Token:', tokenResponse.access_token);
-
-        //     // 2. Set token for gapi.client
-        //     gapi.client.setToken({ access_token: tokenResponse.access_token });
-        //   }
-        // })
-
         observer.next();
         observer.complete();
       } catch (err) {
         observer.error(err);
       }
     });
+  }
+
+  handleIdToken(response: any) {
+    this.notification.open(NotificationStyle.TOAST, 'Welcome: ' + response.credential, NotificationType.SUCCESS);
   }
 
   requestAccessToken$(): Observable<string> {
@@ -168,6 +192,7 @@ export class GoogleSheetsService implements OnInit {
 
   setAccessTokenFromStorage() {
     this.accessToken != null && this.accessToken && localStorage.setItem('token', this.accessToken);
+    localStorage.setItem('sheetURL', SheetURL.DEFAULT_SHEET_URL);
   }
 
   handleAuthCallback(code: string): Observable<Object> {

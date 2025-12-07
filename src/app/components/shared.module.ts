@@ -18,7 +18,8 @@ import { DashboardComponent } from './Dashboard/dashboard.component';
 import { SpinnerComponent } from './Spinner/spinner.component';
 import { AccessDeniedComponent } from './Access-denied/access-denied.component';
 import { IconInjectorDirective } from '../directives/icon-injector.directive';
-import { NavMenuComponent } from './NavMenu/nav-menu.component'
+import { NavMenuComponent } from './NavMenu/nav-menu.component';
+import { ChartsComponent } from './Charts/charts.component';
 @NgModule({
   declarations: [
     SheetConnectorComponent,
@@ -31,6 +32,7 @@ import { NavMenuComponent } from './NavMenu/nav-menu.component'
     SpinnerComponent,
     AccessDeniedComponent,
     NavMenuComponent,
+    ChartsComponent,
     
     ArrowUpIconComponent,
     ArrowDownIconComponent,
@@ -56,7 +58,8 @@ import { NavMenuComponent } from './NavMenu/nav-menu.component'
     DashboardComponent,
     SpinnerComponent,
     AccessDeniedComponent,
-    NavMenuComponent
+    NavMenuComponent,
+    ChartsComponent
   ]
 })
 export class SharedModule { }
