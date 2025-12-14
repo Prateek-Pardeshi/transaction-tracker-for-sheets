@@ -1,5 +1,5 @@
 import { Component, Injector } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
 
 @Component({
@@ -9,7 +9,7 @@ import { GoogleSheetsService } from '@services/googleSheetService.service';
   templateUrl: './nav-menu.component.html'
 })
 export class NavMenuComponent {
-  constructor(private route: ActivatedRoute, private inject: Injector) { }
+  constructor(private router: Router, private inject: Injector) { }
 
   get sheetService(): GoogleSheetsService { return this.inject.get(GoogleSheetsService); }
 
@@ -23,6 +23,12 @@ export class NavMenuComponent {
         break;
       case 'login':
         this.sheetService.signIn();
+        break;
+      case 'home':
+        this.router.navigate(['/dashboard']);
+        break;
+      case 'addRecord':
+        this.router.navigate(['/addRecord']);
         break;
     }
   }

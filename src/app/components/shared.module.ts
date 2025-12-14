@@ -20,6 +20,7 @@ import { AccessDeniedComponent } from './Access-denied/access-denied.component';
 import { IconInjectorDirective } from '../directives/icon-injector.directive';
 import { NavMenuComponent } from './NavMenu/nav-menu.component';
 import { ChartsComponent } from './Charts/charts.component';
+import { AddDataRecordsComponent } from './Add-data-records/add-data-records.component';
 @NgModule({
   declarations: [
     SheetConnectorComponent,
@@ -33,6 +34,7 @@ import { ChartsComponent } from './Charts/charts.component';
     AccessDeniedComponent,
     NavMenuComponent,
     ChartsComponent,
+    AddDataRecordsComponent,
     
     ArrowUpIconComponent,
     ArrowDownIconComponent,
@@ -59,7 +61,8 @@ import { ChartsComponent } from './Charts/charts.component';
     SpinnerComponent,
     AccessDeniedComponent,
     NavMenuComponent,
-    ChartsComponent
+    ChartsComponent,
+    AddDataRecordsComponent
   ]
 })
 export class SharedModule { }
