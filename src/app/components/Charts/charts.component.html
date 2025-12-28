@@ -1,52 +1,55 @@
-<!-- <div class="chart-container">
-    <svg #pieChartSvg id="pieChart" viewBox="0 0 400 400">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 hidden">
+  <div class="flex items-center">
+    <input id="Expense" name="chartView" type="radio" [value]="'expense'" [(ngModel)]="chartView"
+      (ngModelChange)="loadChart()" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
+    <label for="Expense" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Expense</label>
+  </div>
+  <div class="flex items-center">
+    <input id="Income" name="chartView" type="radio" [value]="'income'" [(ngModel)]="chartView"
+      (ngModelChange)="loadChart()" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
+    <label for="Income" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Income</label>
+  </div>
+  <div class="flex items-center">
+    <input id="Summary" name="chartView" type="radio" [value]="'summary'" [(ngModel)]="chartView"
+      (ngModelChange)="loadChart()" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
+    <label for="Summary" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Summary</label>
+  </div>
+</div>
 
-        <circle #centerCircle id="center" cx="200" cy="200" r="150" fill="transparent" stroke="#000" stroke-width="0">
-        </circle>
-
-        <text #percentageText id="nTxt" x="200" y="210" text-anchor="middle" font-size="30" font-weight="bold"></text>
-
-    </svg>
-</div> -->
-
-<!-- <div class="relative">
-    <svg #pieChartSvg viewBox="-1 -1 103 103">
-        <circle #centerCircle cx="50" cy="50" r="10" fill="transparent" /> 
-        <text #percentageText x="51" y="41" fill="red" text-anchor="middle" font-size="8" font-weight="bold">89%</text>
-        
-    </svg> -->
-    <!-- <svg viewBox="-1 -1 103 103">
-        <circle #centerCircle cx="50" cy="50" r="15" stroke="white" fill="red" stroke="#fff" stroke-width="0"/>
-        <text #percentageText x="51" y="53" text-anchor="middle" font-size="8" font-weight="bold">89%</text>
-        <circle #centerCircle cx="50" cy="50" r="25" stroke="white" fill="transparent" stroke="#fff" stroke-width="23" style="stroke-dashoffset: 10px; stroke-dasharray: 20px, 340px;"/>
-    </svg> -->
-<!-- </div> -->
+<ng-container #chartContainer></ng-container>
+<ng-template #chartTemplate>
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ chartType }}</h2>
+  <div
+    class="w-full h-[350px] relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl overflow-hidden flex items-center justify-content">
 
 
 
-<div class="w-full h-[600px] relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl overflow-hidden flex items-center justify-center">
-      <canvas #chartCanvas 
-              class="max-w-[500px] max-h-[500px] cursor-pointer"
-              (mousemove)="onCanvasMouseMove($event)"
-              (mouseleave)="onCanvasMouseLeave()"></canvas>
-      
-      <!-- Tooltip -->
-      <div *ngIf="tooltipVisible" 
-           class="absolute bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl pointer-events-none transition-opacity duration-200"
-           [style.left.px]="tooltipX"
-           [style.top.px]="tooltipY"
-           [style.opacity]="tooltipVisible ? 1 : 0">
-        <div class="font-semibold text-sm">{{ tooltipLabel }}</div>
-        <div class="text-xs text-gray-300">{{ tooltipValue }}%</div>
-      </div>
-      
-      <div class="absolute top-5 right-5 bg-white/95 p-5 rounded-lg shadow-lg">
-        <div *ngFor="let item of chartData; let i = index" 
-             class="flex items-center mb-3 cursor-pointer transition-transform duration-200 hover:translate-x-1"
-             (mouseenter)="onLegendHover(i)"
-             (mouseleave)="onLegendLeave(i)">
-          <span class="w-5 h-5 rounded inline-block mr-2.5" [style.background-color]="item.color"></span>
-          <span class="font-medium text-sm text-gray-800">{{ item.label }}: {{ item.value }}%</span>
-        </div>
+    <div class="ml-6" [ngClass]="tooltipVisible ? 'visible': 'invisible'">
+      <h2 class="text-white text-2xl font-semibold mb-2">{{ tooltipLabel }}</h2>
+      <div class="text-white text-2xl">
+        ₹ <span id="percentageText" #percentageText></span>
+      </div> <!-- ₹ {{ tooltipValue | number:'1.2-2' }} -->
+    </div>
+
+    <canvas #chartCanvas class="max-w-[500px] max-h-[500px] cursor-pointer" (mousemove)="onCanvasMouseMove($event)"
+      (mouseleave)="onCanvasMouseLeave()"></canvas>
+
+    <!-- Tooltip -->
+    <div *ngIf="tooltipVisible"
+      class="absolute bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl pointer-events-none transition-opacity duration-200"
+      [style.left.px]="tooltipX" [style.top.px]="tooltipY" [style.opacity]="tooltipVisible ? 1 : 0">
+      <div class="font-semibold text-sm">{{ tooltipLabel }}</div>
+      <div class="text-xs text-gray-300">{{ tooltipPercentage }} %</div>
+    </div>
+
+    <div class="absolute top-5 right-5 bg-white/95 p-5 rounded-lg shadow-lg h-[320px] overflow-y-auto">
+      <div *ngFor="let item of chartData; let i = index"
+        class="flex items-center mb-3 cursor-pointer transition-transform duration-200 hover:translate-x-1"
+        (mouseenter)="onLegendHover(i)" (mouseleave)="onLegendLeave(i)">
+        <span class="w-5 h-5 rounded inline-block mr-2.5" [style.background-color]="item.color"></span>
+        <span class="font-medium text-sm text-gray-800">{{ item.category }}: {{ item.percentage }} %</span>
       </div>
     </div>
+  </div>
+</ng-template>
+

@@ -120,9 +120,15 @@
 </ng-template>
 
 <ng-template #chartTemplate>
-    <div class="grid grid-cols-1 md:grid-cols-1">
+    <div class="grid grid-cols-1 md:grid-cols-1 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+            <app-charts [transaction]="transactions" [chartType]="'Expense'"></app-charts>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+            <app-charts [transaction]="transactions" [chartType]="'Income'"></app-charts>
+        </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <app-charts></app-charts>
+            <app-charts [transaction]="transactions" [chartType]="'Summary'"></app-charts>
         </div>
     </div>
 </ng-template>

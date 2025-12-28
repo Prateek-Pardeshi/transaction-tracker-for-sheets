@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
-import { TransactionType } from '@assets/Entities/enum';
+import { TransactionType, TransactionConstants } from '@assets/Entities/enum';
 
 @Component({
   selector: 'app-transaction-form',
@@ -18,8 +18,8 @@ export class TransactionFormComponent implements OnInit {
   date: string = new Date().toISOString().split('T')[0];
 
   TransactionType = TransactionType;
-  expenseCategories = ['Food', 'Bike', 'Petrol', 'Home', 'Mutual Fund', 'Hair Cut', 'LIC', 'Utilities', 'Diet', 'Travel', 'Debt', 'Other', 'Help', 'Shopping', 'Gifts', 'Health/medical', 'Party', 'Personal'];
-  incomeCategories = ['Savings', 'Paycheck', 'Bonus', 'Credit', 'Other', 'Help'];
+  expenseCategories = TransactionConstants.EXPENSE_CATEGORIES;
+  incomeCategories = TransactionConstants.INCOME_CATEGORIES;
   filteredCategories: string[] = [];
   showSuggestions: boolean = false;
 

@@ -1,14 +1,14 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, viewChild, ViewContainerRef } from '@angular/core';
+import { Component, Inject, Injector, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionType, Duration } from '@assets/Entities/enum';
-
+import { GoogleSheetsService } from '@services/googleSheetService.service';
 @Component({
   selector: 'app-summary',
   standalone: false,
   templateUrl: './summary.component.html',
 })
 
-export class SummaryComponent implements OnInit, OnChanges {  
+export class SummaryComponent implements OnInit, OnChanges {
   @Input() transactions: Transaction[] = [];
 
   @ViewChild('viewContainer', { static: true, read: ViewContainerRef }) viewContainerRef!: ViewContainerRef;
@@ -16,12 +16,16 @@ export class SummaryComponent implements OnInit, OnChanges {
   @ViewChild('summaryTemplate', { static: true }) summaryTemplateTemplateRef!: TemplateRef<any>;
   @ViewChild('chartTemplate', { static: true }) chartTemplateTemplateRef!: TemplateRef<any>;
 
+  constructor(@Inject(Injector) private injector: Injector) { }
+
   showSummary: boolean = false;
   duration: string = Duration.YEARLY;
   totalIncome: number = 0;
   totalExpense: number = 0;
   balance: number = 0;
   viewSummary: boolean = true;
+
+  get googleService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService) }
 
   ngOnInit(): void {
     this.setView(this.viewSummary);
@@ -35,17 +39,21 @@ export class SummaryComponent implements OnInit, OnChanges {
   }
 
   private calculateSummary(): void {
-    let tempTransactions = this.transactions;
+    let tempTransactions = [];
     if (this.duration === Duration.DAILY || this.duration === Duration.MONTHLY) {
       const currentDate = new Date().getDate();
-      const currentMonth = new Date().getMonth();
+      const currentMonth = new Date().getMonth() + 1;
       tempTransactions = this.transactions.filter(t => {
-        const txDate = new Date(t.date || '');
+        const [day, month, year] = (t.date || '').split('/').map(Number);
+        const txDate = new Date(year, month - 1, day);
         return this.duration === Duration.DAILY ?
           txDate.getDate() === currentDate :
-          txDate.getMonth() === currentMonth;
+          txDate.getMonth() + 1 === currentMonth;
       });
     }
+    
+    this.googleService.transactionsSubject.next(tempTransactions);
+
     this.totalIncome = tempTransactions
       .filter(t => t.type === TransactionType.INCOME)
       .reduce((acc, t) => acc + (t.amount || 0), 0);

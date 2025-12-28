@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, ViewContainerRef, TemplateRef, Input } from '@angular/core';
 import { gsap } from 'gsap';
 import { Transaction } from '@assets/Entities/types';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
@@ -15,23 +15,25 @@ if (typeof window !== 'undefined') {
   styleUrl: './charts.component.css'
 })
 export class ChartsComponent implements OnInit, AfterViewInit {
-  @ViewChild('pieChartSvg') pieChartRef!: ElementRef<SVGElement>;
-  @ViewChild('centerCircle') centerCircleRef!: ElementRef<SVGCircleElement>;
-  @ViewChild('percentageText') nTxtRef!: ElementRef<SVGTextElement>;
+  @ViewChild('percentageText') nTxtRef!: ElementRef<HTMLCanvasElement>;
 
-  @ViewChild('chartCanvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartContainer', { static: true, read: ViewContainerRef }) chartContainerRef!: ViewContainerRef;
+  @ViewChild('chartTemplate', { static: true }) chartTemplateRef!: TemplateRef<any>;
+
+  @ViewChild('chartCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
   // Example data array
   // chartData = [{category: "Food", amount: 523}, {category: "Personal", amount: 200}, {category: "Travel", amount: 2000}]; // Example data
-  transactions: Transaction[] = [];
-  chartData: Transaction[] = [];
+  @Input() transactions: Transaction[];
+  @Input() chartType: string;
+  chartData: any[] = [];
 
   // chartData: any[] = [
-  //   { label: 'Product A', value: 35, color: '#FF6B6B' },
-  //   { label: 'Product B', value: 25, color: '#4ECDC4' },
-  //   { label: 'Product C', value: 20, color: '#45B7D1' },
-  //   { label: 'Product D', value: 15, color: '#FFA07A' },
-  //   { label: 'Product E', value: 5, color: '#98D8C8' }
+  //   { category: 'Product A', amount: 35, percentage: 35, color: '#FF6B6B' },
+  //   { category: 'Product B', amount: 25, percentage: 25, color: '#4ECDC4' },
+  //   { category: 'Product C', amount: 20, percentage: 20, color: '#45B7D1' },
+  //   { category: 'Product D', amount: 15, percentage: 15, color: '#FFA07A' },
+  //   { category: 'Product E', amount: 5, percentage: 5, color: '#98D8C8' }
   // ];
 
   private ctx!: CanvasRenderingContext2D;
@@ -52,72 +54,79 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   tooltipY: number = 0;
   tooltipLabel: string = '';
   tooltipValue: number = 0;
-
-  transactionType = TransactionType.EXPENSE
+  tooltipPercentage: any = null;
+  chartView: string;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     const storedTransactions = localStorage.getItem('transactions');
     this.transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-    this.calculateSlices();
+    // this.chartView = "expense";
   }
 
-  // ngAfterViewInit is the correct place to run DOM manipulation/animations
   ngAfterViewInit(): void {
-    // Check if the element references are available
-    // if (this.pieChartRef || this.centerCircleRef || this.nTxtRef) {
-    //   const map = new Map();
+    this.loadChart();
+    // this.cdr.detectChanges();
+  }
 
-    //   this.transactions.forEach(item => {
-    //     if (/[a-zA-Z]/.test(item.category)) {
-    //       if (map.has(item.category)) {
-    //         map.get(item.category).amount += item.amount;
-    //       } else {
-    //         map.set(item.category, { ...item });
-    //       }
-    //     }
-    //   });
-
-    //   const result = Array.from(map.values())
-    //   this.makeChart(this.chartData);
-    //   //this.prepareChart(this.chartData);
-    // } else {
-    //   console.error('One or more required SVG elements were not found.');
-    // }
-
-    const canvas = this.canvasRef.nativeElement;
-    canvas.width = 500;
-    canvas.height = 500;
-    this.ctx = canvas.getContext('2d')!;
-    this.centerX = canvas.width / 2;
-    this.centerY = canvas.height / 2;
-    this.setTransactionDataToChart();
-    
-    this.setColorPalette();
-    this.cdr.detectChanges();
-    // Get canvas position for mouse calculations
-    this.updateCanvasOffset();
-    
-    this.animateEntrance();
-    this.startAnimation();
+  loadChart(): void {
+    if (this.chartContainerRef) {
+      this.chartContainerRef.clear();
+      this.chartContainerRef.createEmbeddedView(this.chartTemplateRef);
+      this.cdr.detectChanges();
+      const canvas = this.canvasRef.nativeElement;
+      canvas.width = 500;
+      canvas.height = 500;
+      this.ctx = canvas.getContext('2d')!;
+      this.centerX = canvas.width / 2;
+      this.centerY = canvas.height / 2;
+      this.setTransactionDataToChart();
+      this.setColorPalette();
+      this.calculateSlices();
+      this.updateCanvasOffset();
+      this.animateEntrance();
+      this.startAnimation();
+    }
   }
 
   setTransactionDataToChart(): void {
     const map = new Map();
 
-    this.transactions.forEach(item => {
-      if (/[a-zA-Z]/.test(item.category) && item.type === this.transactionType) {
-        if (map.has(item.category)) {
-          map.get(item.category).amount += item.amount;
-        } else {
-          map.set(item.category, { ...item });
+    if (this.chartType.toLowerCase() === TransactionType.INCOME || this.chartType.toLowerCase() === TransactionType.EXPENSE) {
+      this.transactions.forEach(item => {
+        if (/[a-zA-Z]/.test(item.category) && item.type === this.chartType.toLowerCase()) {
+          if (map.has(item.category)) {
+            map.get(item.category).amount += item.amount;
+          } else {
+            map.set(item.category, { ...item });
+          }
         }
-      }
-    });
+      });
+    } else if (this.chartType.toLowerCase() === 'summary') {
+      this.transactions.forEach(item => {
+        if (/[a-zA-Z]/.test(item.category) && (item.type === TransactionType.INCOME || item.type === TransactionType.EXPENSE)) {
+          if (map.has(item.type)) {
+            map.get(item.type).amount += item.amount;
+          } else {
+            map.set(item.type, { ...item });
+          }
+        }
+      });
+    }
 
     this.chartData = Array.from(map.values());
-    // this.chartData = this.chartData.sort((a, b) => b.amount - a.amount);
+    if(this.chartType.toLowerCase() === 'summary') {
+      this.chartData.forEach(item => {
+        item.category = item.type === TransactionType.INCOME ? 'Income' : 'Expense';
+      });
+      this.chartData.push({category: 'Balance', amount: this.chartData.find(i => i.category === 'Income').amount - this.chartData.find(i => i.category === 'Expense').amount});
+    }
+    const total = this.chartData.reduce((acc, item) => acc + item.amount, 0);
+    this.chartData.map(item => {
+      item["percentage"] = parseFloat(((item.amount / total) * 100).toFixed(2));
+    });
+    this.chartData = this.chartData.sort((a, b) => b.percentage - a.percentage);
   }
 
   setColorPalette(): void {
@@ -167,19 +176,13 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     // });
   }
 
-  ngOnDestroy(): void {
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-    }
-  }
-
   private calculateSlices(): void {
     let currentAngle = -Math.PI / 2; // Start from top
-    
+
     this.chartData.forEach((data, index) => {
-      const angle = (data.amount / 100) * Math.PI * 2;
+      const angle = (data.percentage / 100) * Math.PI * 2;
       const midAngle = currentAngle + angle / 2;
-      
+
       this.slices.push({
         startAngle: currentAngle,
         endAngle: currentAngle + angle,
@@ -191,7 +194,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
         offsetY: 0,
         scale: 1
       });
-      
+
       currentAngle += angle;
     });
   }
@@ -215,37 +218,35 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
   private draw(): void {
     this.ctx.clearRect(0, 0, 500, 500);
-    
-    // Draw shadow layer (3D effect)
+
     this.slices.forEach((slice, index) => {
       const shadowDepth = 15;
       const adjustedStartAngle = slice.startAngle + this.rotationAngle;
       const adjustedEndAngle = slice.endAngle + this.rotationAngle;
       const animatedEndAngle = adjustedStartAngle + (adjustedEndAngle - adjustedStartAngle) * this.animationProgress;
-      
+
       this.ctx.save();
       this.ctx.translate(this.centerX + slice.offsetX, this.centerY + slice.offsetY);
-      
-      // Shadow
+
       this.ctx.beginPath();
       this.ctx.moveTo(0, shadowDepth);
       this.ctx.arc(0, shadowDepth, this.radius * slice.scale, adjustedStartAngle, animatedEndAngle);
       this.ctx.lineTo(0, shadowDepth);
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
       this.ctx.fill();
-      
+
       this.ctx.restore();
     });
-    
+
     // Draw main slices
     this.slices.forEach((slice, index) => {
       const adjustedStartAngle = slice.startAngle + this.rotationAngle;
       const adjustedEndAngle = slice.endAngle + this.rotationAngle;
       const animatedEndAngle = adjustedStartAngle + (adjustedEndAngle - adjustedStartAngle) * this.animationProgress;
-      
+
       this.ctx.save();
       this.ctx.translate(this.centerX + slice.offsetX, this.centerY + slice.offsetY);
-      
+
       // Main slice
       this.ctx.beginPath();
       this.ctx.moveTo(0, 0);
@@ -253,7 +254,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       this.ctx.lineTo(0, 0);
       this.ctx.fillStyle = slice.color;
       this.ctx.fill();
-      
+
       // Highlight effect
       const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius * slice.scale);
       gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
@@ -261,12 +262,12 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
       this.ctx.fillStyle = gradient;
       this.ctx.fill();
-      
+
       // Border
       this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
       this.ctx.lineWidth = 2;
       this.ctx.stroke();
-      
+
       // Side depth effect
       if (this.animationProgress === 1) {
         const depth = 10;
@@ -278,7 +279,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
         this.ctx.fillStyle = this.darkenColor(slice.color, 0.3);
         this.ctx.fill();
       }
-      
+
       this.ctx.restore();
     });
   }
@@ -301,27 +302,27 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     const dx = mouseX - this.centerX;
     const dy = mouseY - this.centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Check if mouse is within the pie chart radius
     if (distance > this.radius) {
       return -1;
     }
-    
+
     let angle = Math.atan2(dy, dx) - this.rotationAngle;
-    
+
     // Normalize angle to [0, 2π]
     while (angle < 0) angle += Math.PI * 2;
     while (angle > Math.PI * 2) angle -= Math.PI * 2;
-    
+
     // Find which slice the angle falls into
     for (let i = 0; i < this.slices.length; i++) {
       let startAngle = this.slices[i].startAngle + Math.PI / 2;
       let endAngle = this.slices[i].endAngle + Math.PI / 2;
-      
+
       // Normalize slice angles
       while (startAngle < 0) startAngle += Math.PI * 2;
       while (endAngle < 0) endAngle += Math.PI * 2;
-      
+
       if (startAngle > endAngle) {
         // Handle wrap-around case
         if (angle >= startAngle || angle <= endAngle) {
@@ -333,22 +334,22 @@ export class ChartsComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    
+
     return -1;
   }
 
   onCanvasMouseMove(event: MouseEvent): void {
     this.updateCanvasOffset();
-    
+
     const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     const scaleX = this.canvasRef.nativeElement.width / rect.width;
     const scaleY = this.canvasRef.nativeElement.height / rect.height;
-    
+
     const mouseX = (event.clientX - rect.left) * scaleX;
     const mouseY = (event.clientY - rect.top) * scaleY;
-    
+
     const sliceIndex = this.getSliceAtPosition(mouseX, mouseY);
-    
+
     if (sliceIndex !== -1 && sliceIndex !== this.hoveredIndex) {
       // New slice hovered
       if (this.hoveredIndex !== -1) {
@@ -356,13 +357,21 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       }
       this.hoveredIndex = sliceIndex;
       this.animateSlice(sliceIndex);
-      
+
       // Show tooltip
       this.tooltipVisible = true;
       this.tooltipLabel = this.chartData[sliceIndex].category;
       this.tooltipValue = this.chartData[sliceIndex].amount;
+      this.tooltipPercentage = this.chartData[sliceIndex].percentage;
       this.tooltipX = event.clientX - this.canvasOffsetX + 15;
       this.tooltipY = event.clientY - this.canvasOffsetY - 10;
+      gsap.to(this.nTxtRef.nativeElement, {
+        ease: 'power2.inOut',
+        opacity: 1,
+        attr: { style: `color: ${this.chartData[sliceIndex].color}` },
+        innerText: this.chartData[sliceIndex].amount,
+        snap: 'innerText'
+      });
     } else if (sliceIndex === -1 && this.hoveredIndex !== -1) {
       // Mouse left all slices
       this.resetSlice(this.hoveredIndex);
@@ -387,7 +396,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     const slice = this.slices[index];
     const angle = slice.midAngle + this.rotationAngle;
     const offsetDistance = 20;
-    
+
     gsap.to(slice, {
       offsetX: Math.cos(angle) * offsetDistance,
       offsetY: Math.sin(angle) * offsetDistance,
@@ -399,7 +408,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
   private resetSlice(index: number): void {
     const slice = this.slices[index];
-    
+
     gsap.to(slice, {
       offsetX: 0,
       offsetY: 0,
@@ -415,11 +424,21 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     }
     this.hoveredIndex = index;
     this.animateSlice(index);
-    
+
     // Show tooltip near legend
     this.tooltipVisible = true;
     this.tooltipLabel = this.chartData[index].category;
     this.tooltipValue = this.chartData[index].amount;
+    this.tooltipPercentage = this.chartData[index].percentage;
+    gsap.to(this.nTxtRef.nativeElement, {
+      ease: 'power2.inOut',
+      opacity: 1,
+      attr: { style: `color: ${this.chartData[index].color}` },
+      innerText: this.chartData[index].amount,
+      snap: 'innerText'
+    });
+    // this.animateNumber(0, this.chartData[index].percentage, 0.5);
+
   }
 
   onLegendLeave(index: number): void {
@@ -428,173 +447,9 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     this.tooltipVisible = false;
   }
 
-
-
-
-  prepareChart(arr: any[]): void {
-    const pieChart = this.pieChartRef.nativeElement;
-    const centerCircle = this.centerCircleRef.nativeElement;
-    const nTxt = this.nTxtRef.nativeElement;
-
-    arr = arr.sort((a, b) => b.amount - a.amount);
-    if (!pieChart || !centerCircle) return;
-    // arr = [{category: "Food", amount: 523}]
-    const sum = arr.reduce((a, { amount }) => a + amount, 0);
-    const centerRadius = Number(gsap.getProperty(centerCircle, 'r'));
-
-    let startAngle = 0;
-    for (let i = 0; i < arr.length; i++) {
-
-      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      pieChart.appendChild(c);
-      const segmentPercent = arr[i].amount / sum * 100;
-      const strokeWidth = 10 * arr.length - 10 * i;
-      const dataSw = strokeWidth;
-
-      const circumference = 2 * Math.PI * centerRadius;
-      const segmentLength = (segmentPercent / 100) * circumference
-      const dashArray = `${segmentLength}px ${circumference - segmentLength}px`;
-      const dashOffset = circumference - circumference * (startAngle / 360);
-      startAngle += (segmentLength / 100) * 360;
-
-      c.addEventListener('pointerenter', (e) => {
-        const t = e.currentTarget as SVGElement;
-        const strokeWidth = gsap.getProperty(t, 'data-sw') as number;
-
-        gsap.to(t, { ease: 'expo', attr: { 'stroke-width': strokeWidth + 8 } });
-        gsap.to(nTxt, {
-          ease: 'power2.inOut',
-          opacity: 1,
-          attr: { fill: gsap.getProperty(t, 'stroke') as string },
-          innerHTML: gsap.getProperty(t, 'data-val') + '%',
-          snap: 'innerHTML'
-        });
-      });
-
-      c.addEventListener('pointerleave', (e) => {
-        const t = e.currentTarget as SVGElement;
-        const strokeWidth = gsap.getProperty(t, 'data-sw') as number;
-
-        gsap.to(t, { ease: 'expo', attr: { 'stroke-width': strokeWidth } });
-        gsap.to(nTxt, { opacity: 0, ease: 'power2.inOut' });
-      });
-
-      gsap.set(c, {
-        attr: {
-          'data-val': Math.round(segmentPercent),
-          'data-sw': dataSw,
-          'fill': 'transparent',
-          cx: 50,
-          cy: 50,
-          r: centerRadius, // Use the retrieved radius
-          stroke: 'hsl(' + (306 + 66 * i) + ',' + (100 - i / arr.length * 70) + '%,' + (65 - i / arr.length * 50) + '%)',
-          'stroke-width': dataSw,
-          'style': `stroke-dashoffset: ${dashOffset}; stroke-dasharray: ${dashArray};`
-        }
-      });
+  ngOnDestroy(): void {
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
     }
-    gsap.set(pieChart, { rotate: -90, svgOrigin: '10 10', transformOrigin: "center center" });
-    // gsap.set(nTxt, { rotate: 90 });
-  }
-
-  makeChart(arr: any[]): void {
-    // Get the native SVG elements
-    const pieChart = this.pieChartRef.nativeElement;
-    const centerCircle = this.centerCircleRef.nativeElement;
-    const nTxt = this.nTxtRef.nativeElement;
-
-    const sum = arr.reduce((a, {amount}) => a + amount, 0);
-    let currentPercent = 0;
-
-    // Get the radius of the center circle
-    const centerRadius = gsap.getProperty(centerCircle, 'r');
-    
-    // Set initial GSAP properties for the text element
-    gsap.set(nTxt, { opacity: 0, innerHTML: '' });
-
-    for (let i = 0; i < arr.length; i++) {
-      // Calculate current cumulative percentage
-      const segmentPercent = arr[i].amount / sum * 100;
-      currentPercent += segmentPercent;
-
-      const dur = 3 - 1.5 * i / arr.length;
-      const ez = 'power3';
-      
-      // Create SVG circle element
-      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      
-      // Note: The original code used prepend, which might cause layering issues.
-      // Append is generally safer for SVG circles unless a specific visual order is needed.
-      pieChart.appendChild(c);
-      
-      // Calculate stroke width based on segment index
-      const strokeWidth = 10 * arr.length - 10 * i;
-      const dataSw = strokeWidth;
-      
-      gsap.set(c, {
-        attr: {
-          'data-val': Math.round(segmentPercent),
-          'data-sw': dataSw,
-          cx: 50,
-          cy: 50,
-          r: centerRadius, // Use the retrieved radius
-          stroke: 'hsl(' + (306 + 66 * i) + ',' + (100 - i / arr.length * 70) + '%,' + (65 - i / arr.length * 50) + '%)',
-          'stroke-width': dataSw 
-        }
-      });
-      
-      // Animate the circle using drawSVG (requires DrawSVGPlugin)
-      // Note: The original code starts from 0% and animates to the *end* of the segment.
-      // For a proper pie chart stroke effect, you typically animate from the *start* of the segment
-      // to the *end* of the segment. The original logic here is creating overlapping strokes.
-      // For the original effect:
-      gsap.fromTo(c, { drawSVG: 0 }, { drawSVG: '0% ' + (currentPercent) + '%', duration: dur, ease: ez });
-      
-      //--- Event Listeners ---
-      c.addEventListener('pointerenter', (e) => {
-        const t = e.currentTarget as SVGElement;
-        const strokeWidth = gsap.getProperty(t, 'data-sw') as number;
-        
-        gsap.to(t, { ease: 'expo', attr: { 'stroke-width': strokeWidth + 8 } });
-        gsap.to(nTxt, {
-          ease: 'power2.inOut',
-          opacity: 1,
-          attr: { fill: gsap.getProperty(t, 'stroke') as string },
-          innerHTML: gsap.getProperty(t, 'data-val') + '%',
-          snap: 'innerHTML'
-        });
-      });
-      
-      c.addEventListener('pointerleave', (e) => {
-        const t = e.currentTarget as SVGElement;
-        const strokeWidth = gsap.getProperty(t, 'data-sw') as number;
-
-        gsap.to(t, { ease: 'expo', attr: { 'stroke-width': strokeWidth } });
-        gsap.to(nTxt, { opacity: 0, ease: 'power2.inOut' });
-      });
-      //--- End Event Listeners ---
-
-      // --- Shade/Shadow Animation ---
-      if (i <= arr.length - 2) {
-        const shade = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        pieChart.appendChild(shade); // Use appendChild for clarity
-        
-        // Note: The 'points' attribute is hardcoded and seems specific to a 3D effect.
-        // It's kept for functional parity with the original code.
-        gsap.fromTo(shade, {
-          attr: { points: '243,200 350,200 350,210' },
-          opacity: 0.4 - i / arr.length * 0.35,
-          pointerEvents: 'none',
-          transformOrigin: '50 50'
-        }, {
-          rotate: currentPercent / 100 * 360,
-          duration: dur,
-          ease: ez
-        });
-      }
-      // --- End Shade/Shadow Animation ---
-    }
-
-    gsap.set(pieChart, { rotate: -90, svgOrigin: '10 10', transformOrigin: "center center" });
   }
 }

@@ -46,3 +46,6 @@
         </div>
     </div>
 </div>
+
+<app-transaction-form [isSaving]="isSaving" (addTransaction)="addRecurringTransaction($event)"></app-transaction-form>
+<app-transaction-list [transactions]="transactions"></app-transaction-list>

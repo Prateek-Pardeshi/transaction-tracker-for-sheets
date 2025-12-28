@@ -1,5 +1,15 @@
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Transactions</h2>
+    <div class="grid grid-cols-1 mb-4 pl-2 md:grid-cols-3 gap-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Transactions</h2>
+        <button [ngClass]="appliedFilters.showAppliedFilters ? 'visible' : 'invisible'" class="ml-auto bg-white dark:bg-gray-800 no-underline hover:underline rounded-md text-sm font-medium text-blue-200"
+            (click)="openAppliedFilters()">
+            Applied Filters
+        </button>
+        <button class="ml-auto bg-white dark:bg-gray-800 no-underline hover:underline rounded-md text-sm font-medium text-blue-600"
+            (click)="openFilterPopup()">
+            Filters
+        </button>
+    </div>
     <ng-container *ngIf="filteredRecords.length > 0; else noTransactions">
         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
             <app-transaction-item *ngFor="let tx of filteredRecords; trackBy: trackById"
@@ -62,3 +72,68 @@
         </div>
     </ng-container>
 </div>
+
+<ng-container #filterContainer></ng-container>
+<ng-template #filterTemplate>
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-6">
+            <div class="relative grid grid-cols-1 mb-4 pl-2 md:grid-cols-2 gap-3">
+                <h2 class="text-xl font-semibold mb-4">Filters</h2>
+                <button class="absolute top-2 right-3 rounded-full bg-white/20 hover:bg-white/30 p-1 transition"
+                    (click)="closePopUp()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 mb-4 md:grid-cols-2 gap-3 items-center">
+
+                <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Category
+                </label>
+                <select id="category" name="category" [(ngModel)]="category" placehlder="Select Category"
+                    class="h-40% w-40% rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2">
+                    <option *ngFor="let cat of currentCategories" [value]="cat">{{ cat }}</option>
+                </select>
+
+                <label for="description"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                <input type="text" id="description" name="description" [(ngModel)]="description"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2"
+                    placeholder="e.g. Coffee" />
+
+                <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">From Date</label>
+                <input type="date" id="date" name="date" [(ngModel)]="fromDate"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2" />
+                <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">To Date</label>
+                <input type="date" id="date" name="date" [(ngModel)]="toDate" [min]="fromDate"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2" />
+
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Type</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="flex items-center">
+                        <input id="expense" name="type" type="radio" [value]="TransactionType.EXPENSE" [(ngModel)]="type"
+                            class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                            [disabled]="isSaving" />
+                        <label for="expense" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Expense</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input id="income" name="type" type="radio" [value]="TransactionType.INCOME" [(ngModel)]="type"
+                            class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                            [disabled]="isSaving" />
+                        <label for="income" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">Income</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2">
+                <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" (click)="applyFilters()">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+</ng-template>

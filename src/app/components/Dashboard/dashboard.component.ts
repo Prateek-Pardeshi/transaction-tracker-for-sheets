@@ -90,12 +90,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.notificationService.open(NotificationStyle.TOAST, 'Saving transaction...', NotificationType.INFO, 1000);
     this.SpinnerService.startSpinner();
     new Promise<void>((resolve) => {
-      this.sheetsService.addTransaction(transaction).subscribe({
+      this.sheetsService.addTransaction(transaction, this.transactions).subscribe({
         next: (resonse) => {
           if (resonse != null) {
             this.transactions.push(transaction);
             this.sheetsService.transactionsSubject.next(this.transactions);
-            localStorage.setItem('transactions', JSON.stringify(this.transactions));
             this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.SUCCESS, 1500);
           }
         },

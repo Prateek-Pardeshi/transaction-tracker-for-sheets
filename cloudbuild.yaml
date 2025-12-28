@@ -14,6 +14,13 @@ steps:
       - GOOGLE_CLIENT_ID
       - GOOGLE_CLIENT_SECRET
       - GOOGLE_API_KEY
+      - FIREBASE_API_KEY
+      - FIREBASE_AUTH_DOMAIN
+      - FIREBASE_PROJECT_ID
+      - FIREBASE_STORAGE_BUCKET
+      - FIREBASE_MESSAGING_SENDER_ID
+      - FIREBASE_APP_ID
+      - FIREBASE_MEASUREMENT_ID
 
   # Build Angular
   - name: 'node:20-alpine'
@@ -64,6 +71,20 @@ availableSecrets:
       env: GOOGLE_CLIENT_SECRET
     - versionName: projects/372954632265/secrets/GOOGLE_API_KEY/versions/latest
       env: GOOGLE_API_KEY
+    - versionName: projects/372954632265/secrets/FIREBASE_API_KEY/versions/latest
+      env: FIREBASE_API_KEY
+    - versionName: projects/372954632265/secrets/FIREBASE_AUTH_DOMAIN/versions/latest
+      env: FIREBASE_AUTH_DOMAIN
+    - versionName: projects/372954632265/secrets/FIREBASE_PROJECT_ID/versions/latest
+      env: FIREBASE_PROJECT_ID
+    - versionName: projects/372954632265/secrets/FIREBASE_STORAGE_BUCKET/versions/latest
+      env: FIREBASE_STORAGE_BUCKET
+    - versionName: projects/372954632265/secrets/FIREBASE_MESSAGING_SENDER_ID/versions/latest
+      env: FIREBASE_MESSAGING_SENDER_ID
+    - versionName: projects/372954632265/secrets/FIREBASE_APP_ID/versions/latest
+      env: FIREBASE_APP_ID
+    - versionName: projects/372954632265/secrets/FIREBASE_MEASUREMENT_ID/versions/latest
+      env: FIREBASE_MEASUREMENT_ID
 
 options:
   substitutionOption: ALLOW_LOOSE

@@ -10,6 +10,10 @@ import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './components/shared.module';
 import { ConfigService } from './services/config.service';
 
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { environment } from '../environments/environment';
+
 export function loadConfig(configService: ConfigService) {
   return () => configService.load();
 }
@@ -31,7 +35,9 @@ export function loadConfig(configService: ConfigService) {
       useFactory: loadConfig,
       deps: [ConfigService],
       multi: true
-    }
+    },
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideFirestore(() => getFirestore())
   ],
   bootstrap: [AppComponent],
 })

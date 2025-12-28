@@ -43,7 +43,6 @@ export class SheetConnectorComponent {
   handleReset() {
     this.url = '';
     localStorage.removeItem('sheetURL');
-    localStorage.removeItem('transactions');
     window.location.reload();
   }
 }

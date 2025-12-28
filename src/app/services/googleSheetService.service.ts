@@ -3,11 +3,12 @@ declare const google: any;
 
 import { Inject, Injectable, Injector, OnInit, inject } from '@angular/core';
 import { Transaction, SheetDetails } from '@assets/Entities/types';
-import { NotificationStyle, NotificationType, TransactionType } from '@assets/Entities/enum';
+import { NotificationStyle, NotificationType, TransactionType, TransactionConstants } from '@assets/Entities/enum';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer, Subject, of, Subscription } from 'rxjs';
 import { Auth, GoogleAuthProvider, signInWithPopup, user, User } from '@angular/fire/auth';
 import { NotificationService } from './notification.service';
+import { FirebaseDataService } from './firebaseData.service';
 import { environment } from '../../environments/environment';
 import { SheetURL } from '@assets/Entities/enum';
 
@@ -23,18 +24,24 @@ export class GoogleSheetsService implements OnInit {
     //     console.log('Not logged in');
     //   }
     // });
+    
+    this.dataService.getTransactions().subscribe((data: Transaction[]) => {
+      this.recuringTransactions = data;
+    });
   }
 
   get notification(): NotificationService { return this.injector.get(NotificationService); }
+  get dataService(): FirebaseDataService { return this.injector.get(FirebaseDataService); }
 
   private client_secret = environment.googleClientSecret;
   private clientId = environment.googleClientId;
   private apiKey = environment.googleApiKey;
-  private scope = 'https://www.googleapis.com/auth/spreadsheets';
+  private scope = TransactionConstants.SCOPE;
   private tokenClient: any;
   private tokenDrive: any;
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private tokenExpiryTime: number | null = null;
+  private recuringTransactions: Transaction[] = [];
   public transactionsSubject = new Subject<any>();
   // private auth: Auth = inject(Auth);
 
@@ -56,7 +63,6 @@ export class GoogleSheetsService implements OnInit {
 
   async signIn() {
     localStorage.removeItem('token');
-    localStorage.removeItem('transactions');
     localStorage.removeItem('sheetURL');
     const provider = new GoogleAuthProvider();
     // try {
@@ -96,7 +102,7 @@ export class GoogleSheetsService implements OnInit {
         try {
           await gapi.client.init({
             apiKey: environment.googleApiKey,
-            discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+            discoveryDocs: [TransactionConstants.DISCOVERY_DOC],
           });
           observer.next();
           observer.complete();
@@ -122,7 +128,7 @@ export class GoogleSheetsService implements OnInit {
           client_id: this.clientId,
           ux_mode: 'redirect', //'popup'
           redirect_uri: window.location.origin + '/auth/callback',
-          scope: 'https://www.googleapis.com/auth/calendar.readonly',//this.scope,
+          scope: TransactionConstants.TOKEN_SCOPE,//this.scope,
           callback: (tokenResponse: any) => {
             this.storeToken(tokenResponse);
             observer.next();
@@ -204,7 +210,7 @@ export class GoogleSheetsService implements OnInit {
       grant_type: 'authorization_code'
     });
 
-    return this.http.post('https://oauth2.googleapis.com/token', body.toString(), {
+    return this.http.post(TransactionConstants.TOKEN_URL, body.toString(), {
       headers: new HttpHeaders({
         'Content-Type': 'application/x-www-form-urlencoded'
       })
@@ -212,7 +218,7 @@ export class GoogleSheetsService implements OnInit {
   }
 
   validateToken(): Observable<any> {
-    return this.http.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${this.accessToken}`)
+    return this.http.get(TransactionConstants.VALIDATE_TOKEN_URL.replace('_TOKEN_', this.accessToken));
   }
 
   //#endregion 
@@ -220,7 +226,7 @@ export class GoogleSheetsService implements OnInit {
 
   //#region Google Sheet Actions
 
-  addTransaction(values: Transaction): Observable<any> {
+  addTransaction(values: Transaction, allTransactions: Transaction[]): Observable<any> {
     if (!this.sheetDetails.sheetId || !this.sheetDetails.sheetName || !this.sheetDetails.sheetURL) {
       this.notification.open(NotificationStyle.TOAST, 'Checking Google Sheet Connection...', NotificationType.INFO);
       this.handleSheetConnection();
@@ -232,15 +238,15 @@ export class GoogleSheetsService implements OnInit {
     }
     return this.validateToken().pipe(
       switchMap((response) => {
-        let token = response
+        let token = response;
+        values.date = this.formatDate(values.date);
+        const val = this.dataService.checkAndAddRecurringTransactions(allTransactions,this.recuringTransactions, values);
         const range = values.type === TransactionType.INCOME ? `${this.sheetDetails.sheetName}!G:J` : `${this.sheetDetails.sheetName}!B:E`;
         const valueRangeBody = {
-          values: [
-            [this.formatDate(values.date), values.amount, values.description, values.category]
-          ],
+          values: val.map((v) => [this.formatDate(v.date), v.amount, v.description, v.category]),
         };
-
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.sheetDetails.sheetId}/values/${range}:append?valueInputOption=USER_ENTERED`;
+        
+        const url = TransactionConstants.ADD_TRANSACTION_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_RANGE_", range);
 
         const headers = {
           Authorization: `Bearer ${this.accessToken}`,
@@ -249,8 +255,8 @@ export class GoogleSheetsService implements OnInit {
         return this.http.post(url, valueRangeBody, { headers });
       }),
       catchError((error) => {
-        this.notification.open(NotificationStyle.POPUP, "Token Invlid! Try logging in again", NotificationType.ERROR);
-        this.signIn();
+        this.notification.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
+        //this.signIn();
         return of(null);
       })
     )
@@ -268,9 +274,9 @@ export class GoogleSheetsService implements OnInit {
 
   fetchTransactions(type: TransactionType = TransactionType.EXPENSE) {
     if (!this.sheetDetails.sheetId || !this.sheetDetails.sheetName) return;
-    const incomeQuery = encodeURIComponent('select G, H, I, J where G is not null and H is not null and I is not null and J is not null');
-    const expenseQuery = encodeURIComponent('select B, C, D, E where B is not null and C is not null and D is not null and E is not null');
-    const url = `https://docs.google.com/spreadsheets/d/${this.sheetDetails.sheetId}/gviz/tq?sheet=${this.sheetDetails.sheetName}&tq=`;
+    const incomeQuery = encodeURIComponent(TransactionConstants.INCOME_QUERY);
+    const expenseQuery = encodeURIComponent(TransactionConstants.EXPENSE_QUERY);
+    const url = TransactionConstants.FETCH_TRANSACTIONS_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_SHEET_NAME_", this.sheetDetails.sheetName);
     const incomeData$ = this.http.get(url + incomeQuery, { responseType: 'text' });
     const expenseData$ = this.http.get(url + expenseQuery, { responseType: 'text' });
 
@@ -299,8 +305,8 @@ export class GoogleSheetsService implements OnInit {
       let sheetData = temptData.sort((a, b) =>
         this.parseDate(b.date).getTime() - this.parseDate(a.date).getTime()
       );
-      this.transactionsSubject.next(sheetData)
-      localStorage.setItem('transactions', JSON.stringify(sheetData));
+      sheetData = sheetData.sort((a, b) => b.id - a.id );
+      this.transactionsSubject.next(sheetData);
     });
   }
 
@@ -394,6 +400,7 @@ export class GoogleSheetsService implements OnInit {
   }
 
   private formatDate(isoDate: string): string {
+    if(isoDate.includes('/')) return isoDate;
     const [year, month, day] = isoDate.split('-');
     return `${day}/${month}/${year}`;
   }
