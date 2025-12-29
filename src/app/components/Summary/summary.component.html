@@ -5,6 +5,10 @@
             class="h-40% w-40% rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2">
             <option *ngFor="let cat of ['Daily','Monthly','Yearly']" [value]="cat">{{ cat }}</option>
         </select>
+        <select id="duration" name="duration" [(ngModel)]="month" (change)="showSummaryDurationWise()" [ngClass]="duration !== 'Monthly' ? 'hidden' : ''"
+            class="h-40% w-40% rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2">
+            <option *ngFor="let mon of months" [ngValue]="mon">{{ mon.name }}</option>
+        </select>
     </div>
     <div class="flex items-center space-x-4">
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">View :</span>
@@ -99,21 +103,17 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Income</h3>
-            <p class="mt-1 text-3xl font-semibold text-green-500">{{ showSummary ? (totalIncome | currency:'INR') :
-                (0.00 |
-                currency:'INR') }}</p>
+            <p class="mt-1 text-3xl font-semibold text-green-500">{{ finalTotalIncome | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</h3>
-            <p class="mt-1 text-3xl font-semibold text-red-500">{{ showSummary ? (totalExpense | currency:'INR') : (0.00
-                |
-                currency:'INR') }}</p>
+            <p class="mt-1 text-3xl font-semibold text-red-500">{{ finalTotalExpense | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Balance</h3>
             <p class="mt-1 text-3xl font-semibold"
-                [ngClass]="{'text-blue-500': balance >= 0, 'text-red-500': balance < 0}">
-                {{ showSummary ? (balance | currency:'INR') : (0.00 | currency:'INR') }}
+                [ngClass]="{'text-blue-500': finalBalance >= 0, 'text-red-500': finalBalance < 0}">
+                {{ finalBalance | currency:'INR':'symbol':'1.2-2':'en-IN' }}
             </p>
         </div>
     </div>

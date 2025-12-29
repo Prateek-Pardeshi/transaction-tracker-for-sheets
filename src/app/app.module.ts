@@ -10,6 +10,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './components/shared.module';
 import { ConfigService } from './services/config.service';
 
+import { registerLocaleData } from '@angular/common';
+import localeIn from '@angular/common/locales/en-IN';
+
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
@@ -17,6 +20,7 @@ import { environment } from '../environments/environment';
 export function loadConfig(configService: ConfigService) {
   return () => configService.load();
 }
+registerLocaleData(localeIn);
 @NgModule({
   declarations: [AppComponent],
   imports: [

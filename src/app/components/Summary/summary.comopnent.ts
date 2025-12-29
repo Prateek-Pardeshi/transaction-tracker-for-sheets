@@ -1,7 +1,8 @@
 import { Component, Inject, Injector, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
-import { TransactionType, Duration } from '@assets/Entities/enum';
+import { TransactionType, Duration, TransactionConstants } from '@assets/Entities/enum';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
+import _ from 'lodash';
 @Component({
   selector: 'app-summary',
   standalone: false,
@@ -23,7 +24,12 @@ export class SummaryComponent implements OnInit, OnChanges {
   totalIncome: number = 0;
   totalExpense: number = 0;
   balance: number = 0;
+  finalTotalIncome: number = 0;
+  finalTotalExpense: number = 0;
+  finalBalance: number = 0;
   viewSummary: boolean = true;
+  months = TransactionConstants.MONTHS;
+  month: any = this.months[new Date().getMonth()];
 
   get googleService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService) }
 
@@ -39,10 +45,10 @@ export class SummaryComponent implements OnInit, OnChanges {
   }
 
   private calculateSummary(): void {
-    let tempTransactions = [];
+    let tempTransactions = _.cloneDeep(this.transactions);
     if (this.duration === Duration.DAILY || this.duration === Duration.MONTHLY) {
       const currentDate = new Date().getDate();
-      const currentMonth = new Date().getMonth() + 1;
+      const currentMonth = this.month.id;
       tempTransactions = this.transactions.filter(t => {
         const [day, month, year] = (t.date || '').split('/').map(Number);
         const txDate = new Date(year, month - 1, day);
@@ -51,7 +57,7 @@ export class SummaryComponent implements OnInit, OnChanges {
           txDate.getMonth() + 1 === currentMonth;
       });
     }
-    
+
     this.googleService.transactionsSubject.next(tempTransactions);
 
     this.totalIncome = tempTransactions
@@ -67,6 +73,41 @@ export class SummaryComponent implements OnInit, OnChanges {
 
   showHideSummary(show: boolean): void {
     this.showSummary = show;
+    this.animateCount(this.showSummary ? this.totalIncome : 0, 'income');
+    this.animateCount(this.showSummary ? this.totalExpense : 0, 'expense');
+    this.animateCount(this.showSummary ? this.balance : 0, 'balance');
+  }
+
+  animateCount(target: number, flag: string) {
+    let start = 0;
+    const startTime = performance.now();
+    [this.finalTotalIncome, this.finalTotalExpense, this.finalBalance] = [0, 0, 0];
+
+    const animate = (time: number) => {
+      const progress = Math.min((time - startTime) / 1200, 1) < 0 ? Math.min((time - startTime) / 1200, 1) * -1 : Math.min((time - startTime) / 1200, 1);
+      switch (flag) {
+        case 'income':
+          start = !this.showSummary ? this.totalIncome : 0;
+          this.finalTotalIncome = this.calulateProogress(progress, target, start);
+          break;
+        case 'expense':
+          start = !this.showSummary ? this.totalExpense : 0;
+          this.finalTotalExpense = this.calulateProogress(progress, target, start);
+          break;
+        case 'balance':
+          start = !this.showSummary ? this.balance : 0;
+          this.finalBalance = this.calulateProogress(progress, target, start);
+          break;
+      }
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    requestAnimationFrame(animate);
+  }
+
+  calulateProogress(progress: number, target: number, start: number): number {
+    return !this.showSummary ? Math.floor(start * (1 - progress)) : Math.floor(progress * (target - start) + start);
   }
 
   showSummaryDurationWise(): void {

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef, ViewContainerRef, TemplateRef, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input } from '@angular/core';
 import { gsap } from 'gsap';
 import { Transaction } from '@assets/Entities/types';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
@@ -16,25 +16,11 @@ if (typeof window !== 'undefined') {
 })
 export class ChartsComponent implements OnInit, AfterViewInit {
   @ViewChild('percentageText') nTxtRef!: ElementRef<HTMLCanvasElement>;
-
-  @ViewChild('chartContainer', { static: true, read: ViewContainerRef }) chartContainerRef!: ViewContainerRef;
-  @ViewChild('chartTemplate', { static: true }) chartTemplateRef!: TemplateRef<any>;
-
   @ViewChild('chartCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
-  // Example data array
-  // chartData = [{category: "Food", amount: 523}, {category: "Personal", amount: 200}, {category: "Travel", amount: 2000}]; // Example data
   @Input() transactions: Transaction[];
   @Input() chartType: string;
   chartData: any[] = [];
-
-  // chartData: any[] = [
-  //   { category: 'Product A', amount: 35, percentage: 35, color: '#FF6B6B' },
-  //   { category: 'Product B', amount: 25, percentage: 25, color: '#4ECDC4' },
-  //   { category: 'Product C', amount: 20, percentage: 20, color: '#45B7D1' },
-  //   { category: 'Product D', amount: 15, percentage: 15, color: '#FFA07A' },
-  //   { category: 'Product E', amount: 5, percentage: 5, color: '#98D8C8' }
-  // ];
 
   private ctx!: CanvasRenderingContext2D;
   private centerX: number = 250;
@@ -50,44 +36,37 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
   // Tooltip properties
   tooltipVisible: boolean = false;
-  tooltipX: number = 0;
-  tooltipY: number = 0;
+  tooltipX: number = 224;
+  tooltipY: number = 244;
   tooltipLabel: string = '';
   tooltipValue: number = 0;
   tooltipPercentage: any = null;
   chartView: string;
 
-  constructor(private cdr: ChangeDetectorRef) { }
+  constructor() { }
 
   ngOnInit(): void {
     const storedTransactions = localStorage.getItem('transactions');
     this.transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-    // this.chartView = "expense";
   }
 
   ngAfterViewInit(): void {
     this.loadChart();
-    // this.cdr.detectChanges();
   }
 
   loadChart(): void {
-    if (this.chartContainerRef) {
-      this.chartContainerRef.clear();
-      this.chartContainerRef.createEmbeddedView(this.chartTemplateRef);
-      this.cdr.detectChanges();
-      const canvas = this.canvasRef.nativeElement;
-      canvas.width = 500;
-      canvas.height = 500;
-      this.ctx = canvas.getContext('2d')!;
-      this.centerX = canvas.width / 2;
-      this.centerY = canvas.height / 2;
-      this.setTransactionDataToChart();
-      this.setColorPalette();
-      this.calculateSlices();
-      this.updateCanvasOffset();
-      this.animateEntrance();
-      this.startAnimation();
-    }
+    const canvas = this.canvasRef.nativeElement;
+    canvas.width = 500;
+    canvas.height = 500;
+    this.ctx = canvas.getContext('2d')!;
+    this.centerX = canvas.width / 2;
+    this.centerY = canvas.height / 2;
+    this.setTransactionDataToChart();
+    this.setColorPalette();
+    this.calculateSlices();
+    this.updateCanvasOffset();
+    this.animateEntrance();
+    this.startAnimation();
   }
 
   setTransactionDataToChart(): void {
@@ -116,11 +95,11 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     }
 
     this.chartData = Array.from(map.values());
-    if(this.chartType.toLowerCase() === 'summary') {
+    if (this.chartType.toLowerCase() === 'summary') {
       this.chartData.forEach(item => {
         item.category = item.type === TransactionType.INCOME ? 'Income' : 'Expense';
       });
-      this.chartData.push({category: 'Balance', amount: this.chartData.find(i => i.category === 'Income').amount - this.chartData.find(i => i.category === 'Expense').amount});
+      this.chartData.push({ category: 'Balance', amount: this.chartData.find(i => i.category === 'Income').amount - this.chartData.find(i => i.category === 'Expense').amount });
     }
     const total = this.chartData.reduce((acc, item) => acc + item.amount, 0);
     this.chartData.map(item => {

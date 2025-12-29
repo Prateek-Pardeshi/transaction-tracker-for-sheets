@@ -63,14 +63,12 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.applyPagination();
     this.subscription = this.sheetService.transactionsSubject.subscribe((data: Transaction[]) => {
-      this.transactions = data && data.length > 0 ? data : this.transactions;
-      this.storedRecords = this.transactions;
+      this.storedRecords = data && data.length ? data : [];
       this.applyPagination();
       this.cdr.detectChanges();
     });
     this.dataServiceSubscription = this.dataService.transactionsSubject.subscribe((data: Transaction[]) => {
-      this.transactions = data && data.length > 0 ? data : this.transactions;
-      this.storedRecords = this.transactions;
+      this.storedRecords = data && data.length ? data : [];
       this.applyPagination();
       this.cdr.detectChanges();
     });
@@ -99,7 +97,8 @@ export class TransactionListComponent implements OnInit, OnDestroy {
       this.pageDetails.recordsList = Array.from({ length: this.pageDetails.totalPages }, (_, i) => i + 1);
     } else {
       const start = Number(this.pageDetails.currentPage);
-      const end = Number(this.pageDetails.lastRecordPage) > Number(this.pageDetails.totalPages) ? Number(this.pageDetails.totalPages) : Number(this.pageDetails.lastRecordPage) + 4;
+      let end = Number(this.pageDetails.lastRecordPage) > Number(this.pageDetails.totalPages) ? Number(this.pageDetails.totalPages) : Number(this.pageDetails.lastRecordPage) + 4;
+      end = end < 5 ? end : (start == 1 ? 5 : end);
       this.pageDetails.recordsList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
       this.pageDetails.flow == "next" && start != end && this.pageDetails.recordsList.push("...");
       this.pageDetails.flow == "prev" && start != end && this.pageDetails.recordsList.unshift("...");
@@ -162,6 +161,24 @@ export class TransactionListComponent implements OnInit, OnDestroy {
 
       return matchesDescription && matchesType && matchesCategory && matchesFromDate && matchesToDate;
     });
+    this.pageDetails.currentPage = 1;
+    this.applyPagination();
+    this.closePopUp();
+  }
+
+  resetFilters(): void {
+    this.appliedFilters.showAppliedFilters = false;
+    this.appliedFilters.description = '';
+    this.appliedFilters.type = '';
+    this.appliedFilters.category = '';
+    this.appliedFilters.fromDate = '';
+    this.appliedFilters.toDate = '';
+    this.description = '';
+    this.type = TransactionType.EXPENSE;
+    this.category = '';
+    this.fromDate = '';
+    this.toDate = '';
+    this.storedRecords = this.transactions;
     this.pageDetails.currentPage = 1;
     this.applyPagination();
     this.closePopUp();
