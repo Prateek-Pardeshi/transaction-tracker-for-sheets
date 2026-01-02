@@ -1,43 +1,40 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Inject, Injector, Input, OnInit, Output } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
-import { TransactionType, TransactionConstants } from '@assets/Entities/enum';
+import { TransactionType } from '@assets/Entities/enum';
+import { ConfigService } from '@/app/services/config.service';
 
 @Component({
   selector: 'app-transaction-form',
   standalone: false,
   templateUrl: './transactionForm.component.html',
 })
-export class TransactionFormComponent implements OnInit {
+export class TransactionFormComponent implements OnInit, AfterViewInit {
   @Input() isSaving: boolean = false;
+  @Input() title: string = "Add New Transaction";
   @Output() addTransaction = new EventEmitter<Omit<Transaction, 'id'>>();
 
   description: string = '';
   type: TransactionType = TransactionType.EXPENSE;
-  category: string;
+  category: string = "";
   amount: number | null = null;
   date: string = new Date().toISOString().split('T')[0];
 
   TransactionType = TransactionType;
-  expenseCategories = TransactionConstants.EXPENSE_CATEGORIES;
-  incomeCategories = TransactionConstants.INCOME_CATEGORIES;
   filteredCategories: string[] = [];
   showSuggestions: boolean = false;
 
-  constructor() {
-    this.category = this.expenseCategories[0];
-    // this.description = this.category;
-  }
+  constructor(@Inject(Injector) private injector: Injector) {}
 
-  async ngOnInit() {
-    // await this.sheetsService.init();
+  get configService(): ConfigService { return this.injector.get(ConfigService) }
+
+  ngOnInit() {}
+
+  ngAfterViewInit(): void {
+    this.category = this.configService.config.EXPENSE_CATEGORIES[0];
   }
 
   get currentCategories(): string[] {
-    return this.type === TransactionType.EXPENSE ? this.expenseCategories : this.incomeCategories;
-  }
-
-  categoryChange(): void {
-    // this.description = this.category;
+    return this.type === TransactionType.EXPENSE ? this.configService.config.EXPENSE_CATEGORIES : this.configService.config.INCOME_CATEGORIES;
   }
 
   handleTypeChange(): void {
@@ -56,12 +53,10 @@ export class TransactionFormComponent implements OnInit {
     this.category = cat;
     this.description = cat;
     this.filteredCategories = [];
-    this.categoryChange(); 
     this.showSuggestions = false;
   }
 
   onBlur() {
-    // setTimeout(()=>{ this.showSuggestions = false; }, 1000);
     this.showSuggestions = false;
   }
 
@@ -94,6 +89,6 @@ export class TransactionFormComponent implements OnInit {
     this.amount = null;
     this.date = new Date().toISOString().split('T')[0];
     this.type = TransactionType.EXPENSE;
-    this.category = this.expenseCategories[0];
+    this.category = this.configService.config.EXPENSE_CATEGORIES[0];
   }
 }

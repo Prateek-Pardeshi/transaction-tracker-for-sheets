@@ -15,7 +15,10 @@ export class SpinnerComponent {
 
   constructor() { }
 
-  startSpinner(): void {
+  atomicLoader: boolean = true;
+
+  startSpinner(loader: boolean = true): void {
+    this.atomicLoader = loader;
     if (this.spinnerContainerRef) {
       this.spinnerContainerRef.clear();
       this.spinnerContainerRef.createEmbeddedView(this.spinnerTemplateRef);

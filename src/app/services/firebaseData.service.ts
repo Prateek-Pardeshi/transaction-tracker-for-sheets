@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionConstants } from '@assets/Entities/enum';
 import { Observable, Subject } from 'rxjs';
-import { Firestore, collection, addDoc, collectionData } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, collectionData, doc, updateDoc } from '@angular/fire/firestore';
 
 @Injectable({
     providedIn: 'root'
@@ -19,13 +19,18 @@ export class FirebaseDataService {
     }
 
     addTransaction(transaction: Transaction): Promise<any> {
-        const transactionCollection = collection(this.firestore, TransactionConstants.COLLECTION_NAME);
+        const transactionCollection = collection(this.firestore, TransactionConstants.COLLECTION_RECURRING_TRANSACTION);
         return addDoc(transactionCollection, transaction);
     }
 
-    getTransactions() {
-        const usersRef = collection(this.firestore, TransactionConstants.COLLECTION_NAME);
+    getTransactions(COLLECTION_NAME: string) {
+        const usersRef = collection(this.firestore, COLLECTION_NAME);
         return collectionData(usersRef, { idField: 'id' });
+    }
+
+    updateData(COLLECTION_REF: string, data: any) {
+        const docRef = doc(this.firestore, COLLECTION_REF);
+        return updateDoc(docRef, data);
     }
 
     checkAndAddRecurringTransactions(allTrans: Transaction[], recTrans: Transaction[], values: Transaction): Transaction[] {
@@ -37,11 +42,15 @@ export class FirebaseDataService {
             const txDate = new Date(year, month - 1, day);
             return txDate.getMonth() + 1 === currentMonth;
         });
-        let netTrans: Transaction[] = [...recTrans];
-        for (let i = 0; i < recTrans.length; i++) { 
+        let netTrans: Transaction[] = [];
+        recTrans.forEach(item => {
+            const [day, month, year] = (item.date || '').split('/').map(Number);
+            day <= currentDate && netTrans.push(item);
+        });
+        for (let i = 0; i < netTrans.length; i++) { 
             for (let j = 0; j < currentMonthTranx.length; j++) { 
-                if (currentMonthTranx[j].category === recTrans[i].category && currentMonthTranx[j].type === values.type) { 
-                    const idx = netTrans.indexOf(recTrans[i]);
+                if (currentMonthTranx[j].category === netTrans[i].category && currentMonthTranx[j].type === values.type) { 
+                    const idx = netTrans.indexOf(netTrans[i]);
                     idx > -1 && netTrans.splice(idx, 1);
                     break; 
                 }

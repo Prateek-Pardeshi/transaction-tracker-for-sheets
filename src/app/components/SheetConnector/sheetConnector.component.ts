@@ -33,16 +33,8 @@ export class SheetConnectorComponent {
     this.connect.emit(this.url);
   }
 
-  copyAndCreateSheet() {
-    if(!this.copySheetURL) return;
-    this.isConnected = false;
-    this.isConnecting = false;
-    this.create.emit({url: this.copySheetURL, name: this.name})
-  }
-
   handleReset() {
     this.url = '';
-    localStorage.removeItem('sheetURL');
     window.location.reload();
   }
 }

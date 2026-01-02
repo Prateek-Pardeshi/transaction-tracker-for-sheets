@@ -3,7 +3,8 @@ import { Transaction } from '@assets/Entities/types';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
 import { FirebaseDataService } from '@services/firebaseData.service';
 import { Subscription } from 'rxjs';
-import { TransactionType, TransactionConstants } from '@/assets/Entities/enum';
+import { TransactionType } from '@/assets/Entities/enum';
+import { ConfigService } from '@/app/services/config.service';
 @Component({
   selector: 'app-transaction-list',
   standalone: false,
@@ -19,14 +20,16 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   constructor(@Inject(Injector) private injector: Injector, private cdr: ChangeDetectorRef) { }
 
   @Input() transactions: Transaction[] = [];
+  @Input() showFilters: boolean = true;
 
   filteredRecords: Transaction[] = [];
   storedRecords: Transaction[] = [];
 
   get sheetService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService) }
   get dataService(): FirebaseDataService { return this.injector.get(FirebaseDataService) }
+  get configServices(): ConfigService { return this.injector.get(ConfigService) }
   get currentCategories(): string[] {
-    return this.type === TransactionType.EXPENSE ? this.expenseCategories : this.incomeCategories;
+    return this.type === TransactionType.EXPENSE ? this.configServices.config.EXPENSE_CATEGORIES : this.configServices.config.INCOME_CATEGORIES;
   }
 
   private subscription!: Subscription;
@@ -57,8 +60,8 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   };
 
   private TransactionType = TransactionType;
-  private expenseCategories = ["", ...TransactionConstants.EXPENSE_CATEGORIES];
-  private incomeCategories = ["", ...TransactionConstants.INCOME_CATEGORIES];
+  private expenseCategories = ["", ...this.configServices.config.EXPENSE_CATEGORIES];
+  private incomeCategories = ["", ...this.configServices.config.INCOME_CATEGORIES];
 
   ngOnInit(): void {
     this.applyPagination();
@@ -84,6 +87,7 @@ export class TransactionListComponent implements OnInit, OnDestroy {
   }
 
   applyPagination(): void {
+    if(this.storedRecords && this.storedRecords.length == 0) return;
     const start = (this.pageDetails.currentPage - 1) * Number(this.pageDetails.maxRecords);
     const end = Number(start )+ Number(this.pageDetails.maxRecords);
     this.filteredRecords = this.storedRecords.slice(start, end);

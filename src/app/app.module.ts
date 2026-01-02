@@ -18,7 +18,7 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
 
 export function loadConfig(configService: ConfigService) {
-  return () => configService.load();
+  return () => configService.loadMetadata();
 }
 registerLocaleData(localeIn);
 @NgModule({

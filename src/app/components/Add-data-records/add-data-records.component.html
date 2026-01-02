@@ -1,20 +1,10 @@
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 relative">
     <div class="flex justify-between items-center">
         <div>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Create Google Sheet</h2>
-            <div *ngIf="isConnected; else notConnected">
-                <div class="flex items-center mt-2 text-sm text-green-600 dark:text-green-400">
-                    <app-check-circle-icon class="w-5 h-5 mr-2"></app-check-circle-icon>
-                    <span class="pl-3">Connected to: <a [href]="sheetUrl" target="_blank" rel="noopener noreferrer"
-                            class="underline hover:text-green-500">{{ sheetUrl | slice:0:80 }}...</a></span>
-                </div>
-            </div>
-            <ng-template #notConnected>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Connect to a sheet to save your transactions.
-                </p>
-            </ng-template>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Metadata for Google Sheet</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">View or update Metadata for Google Sheet.</p>
         </div>
-        <button (click)="toggleVisibility()"
+        <button (click)="isVisible = !isVisible"
             class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             [attr.aria-label]="isVisible ? 'Hide connection settings' : 'Show connection settings'">
             <app-eye-slash-icon *ngIf="isVisible" class="w-6 h-6"></app-eye-slash-icon>
@@ -22,30 +12,33 @@
         </button>
     </div>
 
-    <div *ngIf="isVisible && !isCopyingDone" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex flex-col sm:flex-row items-end gap-4">
-            <div class="flex-grow w-80%">
-                <label for="sheet-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Create Expense Google Sheet
-                    URL</label>
-                <input type="url" id="sheet-url" name="sheet-url" [(ngModel)]="copySheetURL"
-                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2"
-                    placeholder="https://docs.google.com/spreadsheets/d/..." required [disabled]="isConnecting" />
-            </div>
-            <div class="flex-grow w-20%">
-                <label for="sheet-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Google Sheet
-                    Name</label>
-                <input type="url" id="sheet-url" name="sheet-url" [(ngModel)]="name"
-                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2"
-                    placeholder="Enter Sheet Name..." required [disabled]="isConnecting" />
-            </div>
-            <button type="button" (click)="copyAndCreateSheet()"
-                class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-400 disabled:cursor-not-allowed w-full sm:w-auto"
-                >
-                Create Expense Sheet
-            </button>
+    <div [ngClass]="isVisible ? '' : 'hidden'" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="block md:grid grid-cols-[25%_1fr]">
+            @for (item of metadata | keyvalue ; track item) {
+                <div class="flex items-center mb-3">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{item.key}}</label>
+                </div>
+                @if(isArray(item.value)) {
+                    <div class="flex items-center mb-3">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{item.value | json}}</label>
+                    </div>
+                }
+                @else {
+                    <div class="flex items-center mb-3">
+                        <input type="text" [(ngModel)]="metadata[item.key]"
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white p-2"
+                            placeholder="Enter Value..." required />
+                    </div>
+                }
+            }
+
         </div>
+        <button type="button" (click)="updateMetadata()"
+            class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-400 disabled:cursor-not-allowed w-full sm:w-auto">
+            Update Metadata
+        </button>
     </div>
 </div>
 
-<app-transaction-form [isSaving]="isSaving" (addTransaction)="addRecurringTransaction($event)"></app-transaction-form>
-<app-transaction-list [transactions]="transactions"></app-transaction-list>
+<app-transaction-form [isSaving]="isSaving" [title]="'Add Recurring Transaction'" (addTransaction)="addRecurringTransaction($event)"></app-transaction-form>
+<app-transaction-list [transactions]="transactions" [showFilters]="false"></app-transaction-list>

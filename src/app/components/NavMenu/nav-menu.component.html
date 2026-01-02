@@ -1,15 +1,4 @@
-<style>
-    body {
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(to left, #2bc0e4, #eaecc6);
-    }
-</style>
-
-<div class="fixed bottom-1 right-1 mr-3 mb-3 z-40 has-[:checked]:bottom-12 has-[:checked]:right-12 transition-all duration-500 ease-in-out">
+<div class="fixed top-12 right-1 mr-3 mb-3 z-40 has-[:checked]:bottom-12 has-[:checked]:right-12 transition-all duration-500 ease-in-out">
     <input class="menu-checkbox peer" id="menu" type="checkbox" name="menu" />
 
     <nav class="menu">
@@ -21,14 +10,14 @@
         <ul class="menu-items">
             <li class="menu-item ml-12 pl-2" (click)="svgAction('top')">
                 <!-- top icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
+                <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64" fill="none">
                     <path fill="#ffffff"
                         d="M32 2L16 18h10v15h12V18h10zm0 60c-3.308 0-6-2.848-6-6.348v-9.307C26 42.848 28.692 40 32 40s6 2.848 6 6.346v9.307C38 59.152 35.308 62 32 62m0-18.617c-1.654 0-3 1.33-3 2.963v9.307c0 1.633 1.346 2.965 3 2.965s3-1.332 3-2.965v-9.307c0-1.633-1.346-2.963-3-2.963M22 40H10v3h4.5v19h3V43H22zm26 0h-6v22h3v-9.309h3c3.308 0 6-2.848 6-6.348C54 42.846 51.308 40 48 40m0 9.309h-3v-5.926h3c1.654 0 3 1.328 3 2.961s-1.346 2.965-3 2.965" />
                 </svg>
             </li>
             <li class="menu-item" (click)="svgAction('home')">
                 <!-- Home Icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16">
+                <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16">
                     <path fill="#ffffff" d="M8 1.4L6 2.7V1H4v3L0 6.6l.6.8L8 2.6l7.4 4.8l.6-.8z" />
                     <path fill="#ffffff" d="M8 4L2 8v7h5v-3h2v3h5V8z" />
                 </svg>
@@ -74,7 +63,7 @@
                             d="m5.502 11.501l.66.06l1.538.11h3.206c.53 0 .999 0 1.408.07a.34.34 0 0 0 .32-.532a.34.34 0 0 0-.22-.137a20 20 0 0 0-2.826-.53a12.5 12.5 0 0 0-1.938 0l-1.448.21l-.59.06c-.38 0-.36.22-.27.4a.18.18 0 0 0 .16.29m6.982 3.425a.34.34 0 0 0 .24-.63a18 18 0 0 0-2.487-.219h-1c-.339 0-.678 0-.998.06c-.999.09-1.838.26-2.357.36a.3.3 0 0 0 0 .589c.52 0 1.388.1 2.347.13h.999c.33 0 .679 0 .999-.06c1.218-.15 2.177-.25 2.257-.23" />
                     </g>
                 </svg> -->
-                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                     <g data-name="13-brainstorm" fill="#ffffff">
                         <path
                             d="M27 42h-6a1 1 0 0 1-1-1v-3.1a1 1 0 0 0-.6-.906 11 11 0 1 1 9.2 0 1 1 0 0 0-.6.908V41a1 1 0 0 1-1 1zm-5-2h4v-2.1a3.015 3.015 0 0 1 1.762-2.724A9 9 0 0 0 30 20.292a8.922 8.922 0 0 0-7.035-2.234 9 9 0 0 0-2.724 17.121A3.014 3.014 0 0 1 22 37.9z" />
@@ -92,13 +81,13 @@
             </li>
             <li class="menu-item" (click)="svgAction('login')">
                 <!-- Login icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48">
+                <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48">
                     <path fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
                         d="M25.36 20.372v8.163h9.524v9.523h8.162V20.372zM24.453 4.5a19.5 19.5 0 0 0 0 39v-9.07a10.43 10.43 0 0 1 0-20.86z" />
                 </svg>
             </li>
             <li class="menu-item ml-10 text-gray-500 pointer-events-none cursor-not-allowed">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M19.25 19.25L15.5 15.5M4.75 11C4.75 7.54822 7.54822 4.75 11 4.75C14.4518 4.75 17.25 7.54822 17.25 11C17.25 14.4518 14.4518 17.25 11 17.25C7.54822 17.25 4.75 14.4518 4.75 11Z">
                     </path>
@@ -106,7 +95,7 @@
             </li>
             <li class="menu-item ml-12 pl-2 mb-3" (click)="svgAction('bottom')">
                 <!-- Bottom Icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 65 65">
+                <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 65 65">
                     <!-- Arrow pointing down -->
                     <path fill="#ffffff" d="M32 33L48 17H38V2H26v15H16z" />
 

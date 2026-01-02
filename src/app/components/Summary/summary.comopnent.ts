@@ -1,8 +1,9 @@
 import { Component, Inject, Injector, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
-import { TransactionType, Duration, TransactionConstants } from '@assets/Entities/enum';
+import { TransactionType, Duration } from '@assets/Entities/enum';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
 import _ from 'lodash';
+import { ConfigService } from '@/app/services/config.service';
 @Component({
   selector: 'app-summary',
   standalone: false,
@@ -28,10 +29,11 @@ export class SummaryComponent implements OnInit, OnChanges {
   finalTotalExpense: number = 0;
   finalBalance: number = 0;
   viewSummary: boolean = true;
-  months = TransactionConstants.MONTHS;
-  month: any = this.months[new Date().getMonth()];
+  months = [];
+  month: any = new Date().getMonth() + 1;
 
   get googleService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService) }
+  get configService(): ConfigService { return this.injector.get(ConfigService) }
 
   ngOnInit(): void {
     this.setView(this.viewSummary);
@@ -69,6 +71,8 @@ export class SummaryComponent implements OnInit, OnChanges {
       .reduce((acc, t) => acc + (t.amount || 0), 0);
 
     this.balance = this.totalIncome - this.totalExpense;
+
+    this.showSummary && this.showHideSummary(this.showSummary);
   }
 
   showHideSummary(show: boolean): void {
@@ -111,6 +115,10 @@ export class SummaryComponent implements OnInit, OnChanges {
   }
 
   showSummaryDurationWise(): void {
+    if (this.duration === "Monthly" && (!this.months || this.months.length == 0) ) {
+      this.months = this.configService.config.MONTH;
+      this.month = this.months ? this.months[new Date().getMonth()] : this.month;
+    }
     this.calculateSummary();
   }
 

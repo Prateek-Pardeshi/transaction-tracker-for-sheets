@@ -1,5 +1,6 @@
-import { Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
+import { TransactionType } from '@assets/Entities/enum';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
 
 import { TransactionFormComponent } from '../TransactionForm/transactionForm.component';
@@ -8,7 +9,8 @@ import { NotificationService } from '@services/notification.service';
 import { NotificationStyle, NotificationType } from '@assets/Entities/enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SpinnerService } from '@services/spinner.service';
-import { Subscription } from 'rxjs';
+import { ConfigService } from '@services/config.service';
+import { resolve } from 'path';
 
 const initialTransactions: Transaction[] = [];
 
@@ -28,32 +30,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isConnecting: boolean = false;
   isSaving: boolean = false;
   data: any;
-  transactionsSubscription!: Subscription;
 
-  constructor(
-    private injector: Injector,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {
-    this.loadFromLocalStorage();
+  constructor(@Inject(Injector) private injector: Injector) {
+    this.sheetsService.accessToken = localStorage.getItem('token') ? localStorage.getItem('token') : null;
   }
 
   get sheetsService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService); }
   get notificationService(): NotificationService { return this.injector.get(NotificationService); }
   get SpinnerService(): SpinnerService { return this.injector.get(SpinnerService); }
+  get configService(): ConfigService { return this.injector.get(ConfigService); }
 
   ngOnInit(): void {
-    this.sheetsService.handleSheetConnection();
-    this.sheetsService.fetchTransactions();
-    this.transactionsSubscription = this.sheetsService.transactionsSubject.subscribe((data: Transaction[]) => {
-      this.transactions = data && data.length > 0 ? data : this.transactions;
-    });
-  }
-
-  private loadFromLocalStorage(): void {
-    this.sheetsService.accessToken = localStorage.getItem('token') ? localStorage.getItem('token') : null;
-    const storedTransactions = localStorage.getItem('transactions');
-    this.transactions = storedTransactions ? JSON.parse(storedTransactions) : initialTransactions;
+    this.SpinnerService.startSpinner(false);
+    this.loadTransactionData();
   }
 
   handleConnectSheet(event: any, type: string): void {
@@ -93,7 +82,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.sheetsService.addTransaction(transaction, this.transactions).subscribe({
         next: (resonse) => {
           if (resonse != null) {
-            this.transactions.push(transaction);
+            this.transactions.unshift(transaction);
             this.sheetsService.transactionsSubject.next(this.transactions);
             this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.SUCCESS, 1500);
           }
@@ -117,14 +106,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.sheetUrl = url;
     this.isConnected = true;
     this.sheetsService.sheetDetails.sheetURL = url;
-    localStorage.setItem('sheetURL', url);
-    this.sheetsService.handleSheetConnection();
-    this.sheetsService.fetchTransactions();
-    this.SpinnerService.stopSpinner();
+    this.loadTransactionData();
     this.notificationService.open(NotificationStyle.TOAST, 'Successfully connected to sheet! Transactions will now be saved.', NotificationType.SUCCESS, 4000);
   }
 
-  ngOnDestroy(): void {
-    this.transactionsSubscription.unsubscribe();
+  loadTransactionData(): void {
+    this.sheetsService.handleSheetConnection();
+    this.sheetsService.fetchTransactions().subscribe(([incomeRes, expenseRes]) => {
+      const incomeJson = JSON.parse(incomeRes.substring(47).slice(0, -2));
+      const expenseJson = JSON.parse(expenseRes.substring(47).slice(0, -2));
+
+      let idata = incomeJson.table.rows.map((r: any, index) => ({
+        id: index + 1,
+        date: r.c[0]?.f,
+        amount: r.c[1]?.v,
+        description: r.c[2]?.v,
+        category: r.c[3]?.v,
+        type: TransactionType.INCOME
+      }));
+      let edata = expenseJson.table.rows.map((r: any, index) => ({
+        id: index + 1,
+        date: r.c[0]?.f,
+        amount: r.c[1]?.v,
+        description: r.c[2]?.v,
+        category: r.c[3]?.v,
+        type: TransactionType.EXPENSE
+      }));
+
+      this.transactions = [...idata, ...edata];
+      if (this.transactions && this.transactions.length > 0)
+        this.transactions = this.transactions.sort((a, b) =>
+          this.sheetsService.parseDate(b.date).getTime() - this.sheetsService.parseDate(a.date).getTime()
+        );
+      this.SpinnerService.stopSpinner();
+    });
   }
+
+  ngOnDestroy(): void { }
 }

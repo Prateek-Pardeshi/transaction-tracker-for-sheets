@@ -103,17 +103,17 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Income</h3>
-            <p class="mt-1 text-3xl font-semibold text-green-500">{{ finalTotalIncome | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
+            <p class="mt-1 text-3xl font-semibold text-green-500">₹ {{ finalTotalIncome | number:'1.2-2' }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</h3>
-            <p class="mt-1 text-3xl font-semibold text-red-500">{{ finalTotalExpense | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
+            <p class="mt-1 text-3xl font-semibold text-red-500">₹ {{ finalTotalExpense | number:'1.2-2' }}</p>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Balance</h3>
             <p class="mt-1 text-3xl font-semibold"
                 [ngClass]="{'text-blue-500': finalBalance >= 0, 'text-red-500': finalBalance < 0}">
-                {{ finalBalance | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                ₹ {{ finalBalance | number:'1.2-2' }}
             </p>
         </div>
     </div>

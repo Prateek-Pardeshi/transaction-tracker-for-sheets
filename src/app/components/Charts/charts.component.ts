@@ -11,8 +11,7 @@ if (typeof window !== 'undefined') {
 @Component({
   selector: 'app-charts',
   standalone: false,
-  templateUrl: './charts.component.html',
-  styleUrl: './charts.component.css'
+  templateUrl: './charts.component.html'
 })
 export class ChartsComponent implements OnInit, AfterViewInit {
   @ViewChild('percentageText') nTxtRef!: ElementRef<HTMLCanvasElement>;
@@ -42,13 +41,12 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   tooltipValue: number = 0;
   tooltipPercentage: any = null;
   chartView: string;
+  value: number = 0;
+  color: string = "#fff";
 
   constructor() { }
 
-  ngOnInit(): void {
-    const storedTransactions = localStorage.getItem('transactions');
-    this.transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.loadChart();
@@ -110,10 +108,10 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
   setColorPalette(): void {
     // Method 1: Using HSL color generation (best for distinct colors)
-    this.chartData.forEach((item, index) => {
-      const hue = (index * 360) / this.chartData.length;
-      item['color'] = `hsl(${hue}, 70%, 60%)`;
-    });
+    // this.chartData.forEach((item, index) => {
+    //   const hue = (index * 360) / this.chartData.length;
+    //   item['color'] = `hsl(${hue}, 70%, 60%)`;
+    // });
 
     // Method 2: Predefined color palette
     // const colorPalette = [
@@ -133,15 +131,15 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     //   item.color = `rgb(${r}, ${g}, ${b})`;
     // });
 
-    // // Method 4: Golden ratio for evenly distributed hues
-    // const goldenRatio = 0.618033988749895;
-    // let hue = Math.random(); // Start with random hue
+    // Method 4: Golden ratio for evenly distributed hues
+    const goldenRatio = 0.618033988749895;
+    let hue = Math.random(); // Start with random hue
 
-    // this.chartData.forEach((item, index) => {
-    //   hue += goldenRatio;
-    //   hue %= 1;
-    //   item.color = `hsl(${hue * 360}, 70%, 60%)`;
-    // });
+    this.chartData.forEach((item, index) => {
+      hue += goldenRatio;
+      hue %= 1;
+      item.color = `hsl(${hue * 360}, 70%, 60%)`;
+    });
 
     // // Method 5: Material Design inspired colors
     // const materialColors = [
@@ -344,13 +342,8 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       this.tooltipPercentage = this.chartData[sliceIndex].percentage;
       this.tooltipX = event.clientX - this.canvasOffsetX + 15;
       this.tooltipY = event.clientY - this.canvasOffsetY - 10;
-      gsap.to(this.nTxtRef.nativeElement, {
-        ease: 'power2.inOut',
-        opacity: 1,
-        attr: { style: `color: ${this.chartData[sliceIndex].color}` },
-        innerText: this.chartData[sliceIndex].amount,
-        snap: 'innerText'
-      });
+      this.animateCount(this.chartData[sliceIndex].amount);
+      this.color = this.chartData[sliceIndex].color;
     } else if (sliceIndex === -1 && this.hoveredIndex !== -1) {
       // Mouse left all slices
       this.resetSlice(this.hoveredIndex);
@@ -409,21 +402,29 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     this.tooltipLabel = this.chartData[index].category;
     this.tooltipValue = this.chartData[index].amount;
     this.tooltipPercentage = this.chartData[index].percentage;
-    gsap.to(this.nTxtRef.nativeElement, {
-      ease: 'power2.inOut',
-      opacity: 1,
-      attr: { style: `color: ${this.chartData[index].color}` },
-      innerText: this.chartData[index].amount,
-      snap: 'innerText'
-    });
-    // this.animateNumber(0, this.chartData[index].percentage, 0.5);
-
+    this.animateCount(this.chartData[index].amount);
+    this.color = this.chartData[index].color;
   }
 
   onLegendLeave(index: number): void {
     this.resetSlice(index);
     this.hoveredIndex = -1;
     this.tooltipVisible = false;
+  }
+
+  private animateCount(target: number) {
+    let start = 0;
+    const startTime = performance.now();
+    this.value = 0;
+
+    const animate = (time: number) => {
+      const progress = Math.min((time - startTime) / 800, 1) < 0 ? Math.min((time - startTime) / 800, 1) * -1 : Math.min((time - startTime) / 800, 1);
+      this.value = Math.floor(progress * (target - start) + start);
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    requestAnimationFrame(animate);
   }
 
   ngOnDestroy(): void {

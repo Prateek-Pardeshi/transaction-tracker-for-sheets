@@ -11,6 +11,7 @@ import { NotificationService } from './notification.service';
 import { FirebaseDataService } from './firebaseData.service';
 import { environment } from '../../environments/environment';
 import { SheetURL } from '@assets/Entities/enum';
+import { ConfigService } from './config.service';
 
 @Injectable({ providedIn: 'root' })
 export class GoogleSheetsService implements OnInit {
@@ -24,19 +25,20 @@ export class GoogleSheetsService implements OnInit {
     //     console.log('Not logged in');
     //   }
     // });
-    
-    this.dataService.getTransactions().subscribe((data: Transaction[]) => {
+
+    this.dataService.getTransactions(TransactionConstants.COLLECTION_RECURRING_TRANSACTION).subscribe((data: Transaction[]) => {
       this.recuringTransactions = data;
     });
   }
 
   get notification(): NotificationService { return this.injector.get(NotificationService); }
   get dataService(): FirebaseDataService { return this.injector.get(FirebaseDataService); }
+  get configService(): ConfigService { return this.injector.get(ConfigService); }
 
   private client_secret = environment.googleClientSecret;
   private clientId = environment.googleClientId;
   private apiKey = environment.googleApiKey;
-  private scope = TransactionConstants.SCOPE;
+  private scope = this.configService.config.SCOPE;
   private tokenClient: any;
   private tokenDrive: any;
   private tokenSubject = new BehaviorSubject<string | null>(null);
@@ -63,7 +65,6 @@ export class GoogleSheetsService implements OnInit {
 
   async signIn() {
     localStorage.removeItem('token');
-    localStorage.removeItem('sheetURL');
     const provider = new GoogleAuthProvider();
     // try {
     //   await signInWithPopup(this.auth, provider);
@@ -102,7 +103,7 @@ export class GoogleSheetsService implements OnInit {
         try {
           await gapi.client.init({
             apiKey: environment.googleApiKey,
-            discoveryDocs: [TransactionConstants.DISCOVERY_DOC],
+            discoveryDocs: [this.configService.config.DISCOVERY_DOC],
           });
           observer.next();
           observer.complete();
@@ -120,7 +121,7 @@ export class GoogleSheetsService implements OnInit {
         google.accounts.id.initialize({
           client_id: this.clientId,
           callback: (response: any) => this.handleIdToken(response),
-          auto_select: true, // <--- CRITICAL: Tries to sign in automatically
+          auto_select: true,
           cancel_on_tap_outside: false
         });
 
@@ -128,7 +129,7 @@ export class GoogleSheetsService implements OnInit {
           client_id: this.clientId,
           ux_mode: 'redirect', //'popup'
           redirect_uri: window.location.origin + '/auth/callback',
-          scope: TransactionConstants.TOKEN_SCOPE,//this.scope,
+          scope: this.configService.config.TOKEN_SCOPE,
           callback: (tokenResponse: any) => {
             this.storeToken(tokenResponse);
             observer.next();
@@ -198,7 +199,6 @@ export class GoogleSheetsService implements OnInit {
 
   setAccessTokenFromStorage() {
     this.accessToken != null && this.accessToken && localStorage.setItem('token', this.accessToken);
-    localStorage.setItem('sheetURL', SheetURL.DEFAULT_SHEET_URL);
   }
 
   handleAuthCallback(code: string): Observable<Object> {
@@ -210,7 +210,7 @@ export class GoogleSheetsService implements OnInit {
       grant_type: 'authorization_code'
     });
 
-    return this.http.post(TransactionConstants.TOKEN_URL, body.toString(), {
+    return this.http.post(this.configService.config.TOKEN_URL, body.toString(), {
       headers: new HttpHeaders({
         'Content-Type': 'application/x-www-form-urlencoded'
       })
@@ -218,7 +218,7 @@ export class GoogleSheetsService implements OnInit {
   }
 
   validateToken(): Observable<any> {
-    return this.http.get(TransactionConstants.VALIDATE_TOKEN_URL.replace('_TOKEN_', this.accessToken));
+    return this.http.get(this.configService.config.VALIDATE_TOKEN_URL.replace('_TOKEN_', this.accessToken));
   }
 
   //#endregion 
@@ -234,19 +234,19 @@ export class GoogleSheetsService implements OnInit {
     }
     if (!this.accessToken) {
       this.notification.open(NotificationStyle.TOAST, 'Requesting access token...', NotificationType.INFO);
-      this.getValidAccessToken$()
+      this.signIn()
     }
     return this.validateToken().pipe(
       switchMap((response) => {
         let token = response;
         values.date = this.formatDate(values.date);
-        const val = this.dataService.checkAndAddRecurringTransactions(allTransactions,this.recuringTransactions, values);
+        const val = this.dataService.checkAndAddRecurringTransactions(allTransactions, this.recuringTransactions, values);
         const range = values.type === TransactionType.INCOME ? `${this.sheetDetails.sheetName}!G:J` : `${this.sheetDetails.sheetName}!B:E`;
         const valueRangeBody = {
           values: val.map((v) => [this.formatDate(v.date), v.amount, v.description, v.category]),
         };
-        
-        const url = TransactionConstants.ADD_TRANSACTION_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_RANGE_", range);
+
+        const url = this.configService.config.ADD_TRANSACTION_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_RANGE_", range);
 
         const headers = {
           Authorization: `Bearer ${this.accessToken}`,
@@ -256,14 +256,14 @@ export class GoogleSheetsService implements OnInit {
       }),
       catchError((error) => {
         this.notification.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
-        //this.signIn();
+        this.signIn();
         return of(null);
       })
     )
   }
 
   handleSheetConnection() {
-    this.sheetDetails.sheetURL = localStorage.getItem('sheetURL') || SheetURL.DEFAULT_SHEET_URL;
+    this.sheetDetails.sheetURL = this.configService.config.DEFAULT_SHEET_URL;
     if (!this.sheetDetails.sheetURL.match(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/edit(\?.*)?(#.*)?$/)) {
       this.notification.open(NotificationStyle.POPUP, 'No sheet selected, please connect a google sheet first!', NotificationType.ERROR);
       return;
@@ -272,135 +272,58 @@ export class GoogleSheetsService implements OnInit {
     this.sheetDetails.sheetName = 'Transactions';
   }
 
-  fetchTransactions(type: TransactionType = TransactionType.EXPENSE) {
+  fetchTransactions(): Observable<any> {
     if (!this.sheetDetails.sheetId || !this.sheetDetails.sheetName) return;
-    const incomeQuery = encodeURIComponent(TransactionConstants.INCOME_QUERY);
-    const expenseQuery = encodeURIComponent(TransactionConstants.EXPENSE_QUERY);
-    const url = TransactionConstants.FETCH_TRANSACTIONS_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_SHEET_NAME_", this.sheetDetails.sheetName);
+    const incomeQuery = encodeURIComponent(this.configService.config.INCOME_QUERY);
+    const expenseQuery = encodeURIComponent(this.configService.config.EXPENSE_QUERY);
+    const url = this.configService.config.FETCH_TRANSACTION_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_SHEET_NAME_", this.sheetDetails.sheetName);
     const incomeData$ = this.http.get(url + incomeQuery, { responseType: 'text' });
     const expenseData$ = this.http.get(url + expenseQuery, { responseType: 'text' });
 
-    forkJoin([incomeData$, expenseData$]).subscribe(([incomeRes, expenseRes]) => {
-      const incomeJson = JSON.parse(incomeRes.substring(47).slice(0, -2));
-      const expenseJson = JSON.parse(expenseRes.substring(47).slice(0, -2));
-
-      let idata = incomeJson.table.rows.map((r: any, index) => ({
-        id: index + 1,
-        date: r.c[0]?.f,
-        amount: r.c[1]?.v,
-        description: r.c[2]?.v,
-        category: r.c[3]?.v,
-        type: TransactionType.INCOME
-      }));
-      let edata = expenseJson.table.rows.map((r: any, index) => ({
-        id: index + 1,
-        date: r.c[0]?.f,
-        amount: r.c[1]?.v,
-        description: r.c[2]?.v,
-        category: r.c[3]?.v,
-        type: TransactionType.EXPENSE
-      }));
-
-      let temptData = [...idata, ...edata];
-      let sheetData = temptData.sort((a, b) =>
-        this.parseDate(b.date).getTime() - this.parseDate(a.date).getTime()
-      );
-      sheetData = sheetData.sort((a, b) => b.id - a.id );
-      this.transactionsSubject.next(sheetData);
-    });
+    return forkJoin([incomeData$, expenseData$])
   }
 
-  copySheetFromUrl(sheetUrl: string, newName: string): Observable<void> {
-    return new Observable<void>((observer) => {
-      try {
+  copySheetFromUrl(sheetUrl: string, newName: string): Observable<any> {
+    if (!this.accessToken) {
+      this.notification.open(NotificationStyle.TOAST, 'Requesting access token...', NotificationType.INFO);
+      this.signIn()
+    }
+    return this.validateToken().pipe(
+      switchMap(() => {
         const sourceId = this.getSheetIdFromURL(sheetUrl);
         if (!sourceId) {
           throw new Error('Invalid Google Sheet URL');
         }
-        // gapi.load('client', async () => {
-        //   await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
-        //   await gapi.client.drive.files.copy({
-        //     fileId: sourceId,
-        //     resource: { name: newName }
-        //   });
-        //   observer.next();
-        //   observer.complete();
-        // });
-        // gapi.load('client:auth2', async () => {
+        const url = `https://www.googleapis.com/drive/v3/files/${sourceId}/copy`;
 
-        //   // 1. Initialize
-        //   await gapi.client.init({
-        //     apiKey: environment.googleApiKey,
-        //     clientId: environment.googleClientId,
-        //     discoveryDocs: [
-        //       'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-        //     ],
-        //     scope: 'https://www.googleapis.com/auth/drive.file'
-        //   });
+        const headers = new HttpHeaders({
+          Authorization: `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        });
 
-        //   // 2. Sign in (must wait for it)
-        //   const GoogleAuth = gapi.auth2.getAuthInstance();
-        //   await GoogleAuth.signIn();
+        const body = { name: newName };
 
-        //   // 3. Ensure token exists
-        //   const user = GoogleAuth.currentUser.get();
-        //   const token = user.getAuthResponse().access_token;
-
-        //   if (!token) {
-        //     console.error("User not authenticated");
-        //     return;
-        //   }
-
-        //   console.log("OAuth Token:", token);  // <-- SHOULD NOT BE EMPTY
-
-        //   // 4. Copy Google Sheet
-        //   const response = await gapi.client.drive.files.copy({
-        //     fileId: sourceId,
-        //     resource: { name: newName }
-        //   });
-
-        //   console.log("Copied File ID:", response.result.id);
-        // });
-
-        if (!this.tokenDrive) {
-          this.initAuthClient$().subscribe({
-            next: (res) => {
-              console.log('res', res);
-              const response = gapi.client.drive.files.copy({
-              fileId: sourceId,
-              resource: { name: newName }
-            });
-            console.log('Copied File ID:', response.result.id);
-            },
-            error: (error) => {
-              console.log('error', error)
-            }
-          })
-        } else {
-          const response = gapi.client.drive.files.copy({
-              fileId: sourceId,
-              resource: { name: newName }
-            });
-            console.log('Copied File ID:', response.result.id);
-        }
-
-      } catch (error) {
-        this.notification.open(NotificationStyle.POPUP, error, NotificationType.ERROR);
-      }
-    });
+        return this.http.post(url, body, { headers });
+      }),
+      catchError((error) => {
+        this.notification.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
+        //this.signIn();
+        return of(null);
+      })
+    )
   }
 
   //#endregion
 
   //#region Misc Functions
 
-  private parseDate(dateStr: string): Date {
+  parseDate(dateStr: string): Date {
     const [day, month, year] = dateStr.split('/').map(Number);
     return new Date(year, month - 1, day);
   }
 
-  private formatDate(isoDate: string): string {
-    if(isoDate.includes('/')) return isoDate;
+  formatDate(isoDate: string): string {
+    if (isoDate.includes('/')) return isoDate;
     const [year, month, day] = isoDate.split('-');
     return `${day}/${month}/${year}`;
   }

@@ -11,9 +11,9 @@ export class SpinnerService {
         this.spinnerComponent = spinner;
     }
 
-    startSpinner(): void {
+    startSpinner(loader: boolean = true): void {
         if (this.spinnerComponent) {
-            this.spinnerComponent.startSpinner();
+            this.spinnerComponent.startSpinner(loader);
         } else {
             console.warn('SpinnerComponent is not set.');
         }

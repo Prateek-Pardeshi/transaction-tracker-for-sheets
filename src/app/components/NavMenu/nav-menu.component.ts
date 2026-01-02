@@ -14,6 +14,8 @@ export class NavMenuComponent {
   get sheetService(): GoogleSheetsService { return this.inject.get(GoogleSheetsService); }
 
   svgAction(action: string): void {
+    const navMenu = document.getElementById("menu") as HTMLInputElement;
+    if(navMenu) navMenu.checked = false;
     switch (action) {
       case 'top':
         window.scrollTo({ top: 0, behavior: 'smooth' });

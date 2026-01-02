@@ -1,5 +1,8 @@
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-    <div class="grid grid-cols-3 mb-4 pl-2 gap-4">
+    <div class="grid pl-2" [ngClass]="showFilters ? 'hidden' : ''">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Transactions</h2>
+    </div>
+    <div class="grid grid-cols-3 mb-4 pl-2 gap-4" [ngClass]="showFilters ? '' : 'hidden'">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Transactions</h2>
         <button [ngClass]="appliedFilters.showAppliedFilters ? 'visible' : 'invisible'" class="ml-auto bg-white dark:bg-gray-800 no-underline hover:underline rounded-md text-sm font-medium text-blue-200"
             (click)="openAppliedFilters()">
