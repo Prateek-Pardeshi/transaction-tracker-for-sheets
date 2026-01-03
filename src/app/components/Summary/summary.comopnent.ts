@@ -115,7 +115,7 @@ export class SummaryComponent implements OnInit, OnChanges {
   }
 
   showSummaryDurationWise(): void {
-    if (this.duration === "Monthly" && (!this.months || this.months.length == 0) ) {
+    if (this.duration === "Monthly" && (!this.months || this.months.length == 0)) {
       this.months = this.configService.config.MONTH;
       this.month = this.months ? this.months[new Date().getMonth()] : this.month;
     }
@@ -127,5 +127,13 @@ export class SummaryComponent implements OnInit, OnChanges {
     this.viewContainerRef && this.viewContainerRef.clear()
     this.viewSummary ? this.viewContainerRef.createEmbeddedView(this.summaryTemplateTemplateRef) :
       this.viewContainerRef.createEmbeddedView(this.chartTemplateTemplateRef);
+  }
+
+  isChartVisible(chartType): boolean {
+    const inc = this.transactions.filter(x => x.type == TransactionType.INCOME);
+    const exp = this.transactions.filter(x => x.type == TransactionType.EXPENSE);
+    return chartType.toLowerCase() == TransactionType.INCOME ? (inc && inc.length > 0) :
+      (chartType.toLowerCase() == TransactionType.EXPENSE ? (exp && exp.length > 0) :
+        chartType.toLowerCase() == "summary" ? inc && inc.length > 0 && exp && exp.length > 0 : false);
   }
 }

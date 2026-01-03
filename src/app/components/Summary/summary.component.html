@@ -121,14 +121,14 @@
 
 <ng-template #chartTemplate>
     <div class="grid grid-cols-1 md:grid-cols-1 mb-8">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <app-charts [transaction]="transactions" [chartType]="'Expense'"></app-charts>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6" [ngClass]="isChartVisible('Expense') ? '' : 'hidden'">
+            <app-charts [transactions]="transactions" [chartType]="'Expense'"></app-charts>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <app-charts [transaction]="transactions" [chartType]="'Income'"></app-charts>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6" [ngClass]="isChartVisible('Income') ? '' : 'hidden'">
+            <app-charts [transactions]="transactions" [chartType]="'Income'"></app-charts>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <app-charts [transaction]="transactions" [chartType]="'Summary'"></app-charts>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6" [ngClass]="isChartVisible('Summary') ? '' : 'hidden'">
+            <app-charts [transactions]="transactions" [chartType]="'Summary'"></app-charts>
         </div>
     </div>
 </ng-template>

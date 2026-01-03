@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Inject, Injector, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Inject, Injector, Input, OnInit, Output } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionType } from '@assets/Entities/enum';
 import { ConfigService } from '@/app/services/config.service';
@@ -8,7 +8,7 @@ import { ConfigService } from '@/app/services/config.service';
   standalone: false,
   templateUrl: './transactionForm.component.html',
 })
-export class TransactionFormComponent implements OnInit, AfterViewInit {
+export class TransactionFormComponent implements OnInit {
   @Input() isSaving: boolean = false;
   @Input() title: string = "Add New Transaction";
   @Output() addTransaction = new EventEmitter<Omit<Transaction, 'id'>>();
@@ -27,10 +27,8 @@ export class TransactionFormComponent implements OnInit, AfterViewInit {
 
   get configService(): ConfigService { return this.injector.get(ConfigService) }
 
-  ngOnInit() {}
-
-  ngAfterViewInit(): void {
-    this.category = this.configService.config.EXPENSE_CATEGORIES[0];
+  ngOnInit() {
+    this.category = this.currentCategories[0];
   }
 
   get currentCategories(): string[] {

@@ -39,9 +39,10 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
         }
       });
-    } else {
-      this.router.navigate(['/dashboard']);
-    }
+    } 
+    // else {
+    //   this.router.navigate(['/dashboard']);
+    // }
   }
 
   ngAfterViewInit(): void {

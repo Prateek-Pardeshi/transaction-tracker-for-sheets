@@ -328,6 +328,12 @@ export class GoogleSheetsService implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
+  sortTransactions(transactions: Transaction[]): Transaction[] {
+    return transactions.sort((a, b) =>
+      this.parseDate(b.date).getTime() - this.parseDate(a.date).getTime()
+    );
+  }
+
   getSheetIdFromURL(url: string) {
     let sheetIdMatch = url.match(/spreadsheets\/d\/([^\/]+)\/edit/);
     return sheetIdMatch ? sheetIdMatch[1] : '';

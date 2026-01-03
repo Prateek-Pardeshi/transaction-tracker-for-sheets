@@ -82,7 +82,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.sheetsService.addTransaction(transaction, this.transactions).subscribe({
         next: (resonse) => {
           if (resonse != null) {
-            this.transactions.unshift(transaction);
+            // this.transactions.unshift(transaction);
+            this.transactions = this.sheetsService.sortTransactions(this.transactions);
             this.sheetsService.transactionsSubject.next(this.transactions);
             this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.SUCCESS, 1500);
           }
@@ -135,9 +136,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       this.transactions = [...idata, ...edata];
       if (this.transactions && this.transactions.length > 0)
-        this.transactions = this.transactions.sort((a, b) =>
-          this.sheetsService.parseDate(b.date).getTime() - this.sheetsService.parseDate(a.date).getTime()
-        );
+        this.transactions = this.sheetsService.sortTransactions(this.transactions);
       this.SpinnerService.stopSpinner();
     });
   }

@@ -73,7 +73,7 @@ export class AddDataRecordsComponent implements OnInit {
   updateMetadata() {
     this.SpinnerService.startSpinner();
     const collectionRef = `${TransactionConstants.COLLECTION_TRANSACTION_METADATA}/${this.configService.config.DOCUMENT_ID}`;
-    const obj = Object.entries(this.configService.config).map((x)=>{ return x});
+    const obj = Object.entries(this.metadata).map((x)=>{ return x});
     let metadata = {};
     obj.forEach((item)=>{
       metadata[item[0].toString().toLowerCase()] = item[1];
@@ -107,6 +107,10 @@ export class AddDataRecordsComponent implements OnInit {
           this.txFormComponent.resetForm();
         }
       });
+  }
+
+  valueChange(key:string, value: any): void {
+    this.metadata[key] = value;
   }
 
   isArray(value: any): boolean {

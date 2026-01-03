@@ -10,7 +10,7 @@ const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent },
   { path: 'addRecord', component: AddDataRecordsComponent },
   { path: 'access-denied', component: AccessDeniedComponent },
-  { path: '', redirectTo: 'access-denied', pathMatch: 'full' },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: '**', component: AccessDeniedComponent }
 ];
 
