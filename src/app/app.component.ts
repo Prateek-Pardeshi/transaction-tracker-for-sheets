@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { NotificationComponent } from './components/Notification/notification.component';
 import { NotificationService } from './services/notification.service';
-import { NotificationStyle, NotificationType } from '@assets/Entities/enum';
+import { NotificationStyle, NotificationType, TransactionConstants } from '@assets/Entities/enum';
 import { SpinnerService } from './services/spinner.service';
 import { SpinnerComponent } from './components/Spinner/spinner.component';
 import { ConfigService } from './services/config.service';
@@ -27,6 +27,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(SpinnerComponent) private spinnerComponent!: SpinnerComponent;
 
   ngOnInit(): void {
+    this.verifyLogin();
     const token = new URL(window.location.href).searchParams.get('code');
     if (token) {
       this.sheetsService.handleAuthCallback(token).subscribe({
@@ -39,14 +40,16 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
         }
       });
-    } 
-    // else {
-    //   this.router.navigate(['/dashboard']);
-    // }
+    }
   }
 
   ngAfterViewInit(): void {
     this.notificationService.register(this.notificationComponent);
     this.SpinnerService.register(this.spinnerComponent);
+  }
+
+  verifyLogin(): void {
+    const token = localStorage.getItem(TransactionConstants.STORAGE_TOKEN) || "";
+    !token && this.googleSheet.signIn(); 
   }
 }

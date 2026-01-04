@@ -64,7 +64,7 @@ export class GoogleSheetsService implements OnInit {
   //#region Sign In & Token Cration
 
   async signIn() {
-    localStorage.removeItem('token');
+    localStorage.removeItem(TransactionConstants.STORAGE_TOKEN);
     const provider = new GoogleAuthProvider();
     // try {
     //   await signInWithPopup(this.auth, provider);
@@ -198,7 +198,7 @@ export class GoogleSheetsService implements OnInit {
   }
 
   setAccessTokenFromStorage() {
-    this.accessToken != null && this.accessToken && localStorage.setItem('token', this.accessToken);
+    this.accessToken != null && this.accessToken && localStorage.setItem(TransactionConstants.STORAGE_TOKEN, this.accessToken);
   }
 
   handleAuthCallback(code: string): Observable<Object> {

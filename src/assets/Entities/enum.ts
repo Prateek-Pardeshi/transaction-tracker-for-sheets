@@ -28,5 +28,6 @@ export enum SheetURL {
 
 export const TransactionConstants = {
   COLLECTION_RECURRING_TRANSACTION : "recurring_transactions",
-  COLLECTION_TRANSACTION_METADATA : "transaction_metadata"
+  COLLECTION_TRANSACTION_METADATA : "transaction_metadata",
+  STORAGE_TOKEN: "token"
 }
