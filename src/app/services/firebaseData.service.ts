@@ -46,10 +46,10 @@ export class FirebaseDataService {
         recTrans.forEach(item => {
             if(item.date.includes('/')) {
                 const [day, month, year] = (item.date || '').split('/').map(Number);
-                day <= currentDate && netTrans.push(item);
+                day <= currentDate && item.type === values.type && netTrans.push(item);
             } else if(item.date.includes('-')) {
                 const [year, month, day] = (item.date || '').split('-').map(Number);
-                day <= currentDate && netTrans.push(item);
+                day <= currentDate && item.type === values.type && netTrans.push(item);
             }            
         });
         for (let i = 0; i < netTrans.length; i++) { 
