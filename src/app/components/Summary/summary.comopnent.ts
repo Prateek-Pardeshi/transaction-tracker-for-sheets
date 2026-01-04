@@ -73,6 +73,7 @@ export class SummaryComponent implements OnInit, OnChanges {
     this.balance = this.totalIncome - this.totalExpense;
 
     this.showSummary && this.showHideSummary(this.showSummary);
+    this.setView(this.viewSummary, tempTransactions);
   }
 
   showHideSummary(show: boolean): void {
@@ -122,11 +123,12 @@ export class SummaryComponent implements OnInit, OnChanges {
     this.calculateSummary();
   }
 
-  setView(showChart: boolean): void {
+  setView(showChart: boolean, transactions: Transaction[] = []): void {
     this.viewSummary = showChart;
     this.viewContainerRef && this.viewContainerRef.clear()
+    transactions = transactions && transactions.length > 0 ? transactions : this.transactions;
     this.viewSummary ? this.viewContainerRef.createEmbeddedView(this.summaryTemplateTemplateRef) :
-      this.viewContainerRef.createEmbeddedView(this.chartTemplateTemplateRef);
+      this.viewContainerRef.createEmbeddedView(this.chartTemplateTemplateRef, { transactions: transactions });
   }
 
   isChartVisible(chartType): boolean {
