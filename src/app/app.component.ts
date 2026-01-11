@@ -27,7 +27,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(SpinnerComponent) private spinnerComponent!: SpinnerComponent;
 
   ngOnInit(): void {
-    this.verifyLogin();
     const token = new URL(window.location.href).searchParams.get('code');
     if (token) {
       this.sheetsService.handleAuthCallback(token).subscribe({
@@ -40,6 +39,8 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.notificationService.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
         }
       });
+    } else {
+      this.verifyLogin();
     }
   }
 
