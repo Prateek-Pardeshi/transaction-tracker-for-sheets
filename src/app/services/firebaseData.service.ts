@@ -44,23 +44,27 @@ export class FirebaseDataService {
         });
         let netTrans: Transaction[] = [];
         recTrans.forEach(item => {
-            if(item.date.includes('/')) {
+            if (item.date.includes('/')) {
                 const [day, month, year] = (item.date || '').split('/').map(Number);
                 day <= currentDate && item.type === values.type && netTrans.push(item);
-            } else if(item.date.includes('-')) {
+            } else if (item.date.includes('-')) {
                 const [year, month, day] = (item.date || '').split('-').map(Number);
                 day <= currentDate && item.type === values.type && netTrans.push(item);
-            }            
+            }
         });
-        for (let i = 0; i < netTrans.length; i++) { 
-            for (let j = 0; j < currentMonthTranx.length; j++) { 
-                if (currentMonthTranx[j].category === netTrans[i].category && currentMonthTranx[j].type === values.type) { 
-                    const idx = netTrans.indexOf(netTrans[i]);
-                    idx > -1 && netTrans.splice(idx, 1);
-                    break; 
+
+        currentMonthTranx.forEach(tx => {
+            if (netTrans.length > 0) {
+                const idx = netTrans.findIndex(nt =>
+                    nt.category === tx.category &&
+                    nt.type === tx.type &&
+                    nt.amount === tx.amount &&
+                    nt.description === tx.description);
+                if (idx > -1) {
+                    netTrans.splice(idx, 1);
                 }
-            } 
-        }
+            }
+        });
         netTrans.push(values);
         return netTrans;
     }

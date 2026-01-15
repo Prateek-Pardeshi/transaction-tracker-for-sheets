@@ -7,6 +7,7 @@ import { SpinnerService } from '@services/spinner.service';
 import { TransactionFormComponent } from '../TransactionForm/transactionForm.component';
 import { GoogleSheetsService } from '@/app/services/googleSheetService.service';
 import { ConfigService } from '@/app/services/config.service';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-add-data-records',
   standalone: false,
@@ -15,7 +16,7 @@ import { ConfigService } from '@/app/services/config.service';
 export class AddDataRecordsComponent implements OnInit {
   @ViewChild(TransactionFormComponent) private txFormComponent!: TransactionFormComponent;
 
-  constructor(@Inject(Injector) private injector: Injector) { }
+  constructor(@Inject(Injector) private injector: Injector, private router: Router) { }
 
   isConnected = false;
   sheetUrl = '';
@@ -80,6 +81,8 @@ export class AddDataRecordsComponent implements OnInit {
     })
     this.dataService.updateData(collectionRef, metadata).then(() => {
       this.SpinnerService.stopSpinner();
+      this.notificationService.open(NotificationStyle.TOAST, "Metadata Updated Successfully", NotificationType.SUCCESS);
+      this.router.navigate(['/dashboard']);
     });
   }
 
