@@ -181,22 +181,6 @@ export class GoogleSheetsService implements OnInit {
     this.tokenSubject.next(this.accessToken);
   }
 
-  private startTokenWatcher() {
-    timer(0, 60_000) // every minute
-      .pipe(
-        filter(() => !!this.tokenExpiryTime),
-        filter(() => Date.now() > (this.tokenExpiryTime! - 30_000)), // 30s before expiry
-        switchMap(() => this.requestAccessToken$()),
-        catchError((err) => {
-          this.notification.open(NotificationStyle.POPUP, err?.message, NotificationType.ERROR);
-          return [];
-        })
-      )
-      .subscribe((token) => {
-        console.log('🔄 Token auto-refreshed');
-      });
-  }
-
   setAccessTokenFromStorage() {
     this.accessToken != null && this.accessToken && localStorage.setItem(TransactionConstants.STORAGE_TOKEN, this.accessToken);
   }
@@ -236,30 +220,46 @@ export class GoogleSheetsService implements OnInit {
       this.notification.open(NotificationStyle.TOAST, 'Requesting access token...', NotificationType.INFO);
       this.signIn()
     }
-    return this.validateToken().pipe(
-      switchMap((response) => {
-        let token = response;
-        values.date = this.formatDate(values.date);
-        const val = this.dataService.checkAndAddRecurringTransactions(allTransactions, this.recuringTransactions, values);
-        const range = values.type === TransactionType.INCOME ? `${this.sheetDetails.sheetName}!G:J` : `${this.sheetDetails.sheetName}!B:E`;
-        const valueRangeBody = {
-          values: val.map((v) => [this.formatDate(v.date), v.amount, v.description, v.category]),
-        };
 
-        const url = this.configService.config.ADD_TRANSACTION_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_RANGE_", range);
+    if (this.configService.config.ISLOGINREQUIRED.toLowerCase() == 'true') {
+      return this.validateToken().pipe(
+        switchMap((response) => {
+          let token = response;
+          return this.processTransactionsData(Boolean(this.configService.config.ISLOGINREQUIRED.toLowerCase()), values, allTransactions);
+        }),
+        catchError((error) => {
+          this.notification.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
+          this.signIn();
+          return of(null);
+        })
+      )
+    } else {
+      return this.processTransactionsData(JSON.parse(this.configService.config.ISLOGINREQUIRED.toLowerCase()), values, allTransactions);
+    }
+  }
 
-        const headers = {
-          Authorization: `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json'
-        };
-        return this.http.post(url, valueRangeBody, { headers });
-      }),
-      catchError((error) => {
-        this.notification.open(NotificationStyle.POPUP, error.message, NotificationType.ERROR);
-        this.signIn();
-        return of(null);
-      })
-    )
+  processTransactionsData(isLoginRequired, values, allTransactions: Transaction[]): Observable<any> {
+    values.date = this.formatDate(values.date);
+    const val = this.dataService.checkAndAddRecurringTransactions(allTransactions, this.recuringTransactions, values);
+    const range = values.type === TransactionType.INCOME ? `${this.sheetDetails.sheetName}!G:J` : `${this.sheetDetails.sheetName}!B:E`;
+    const valueRangeBody = {
+      values: val.map((v) => [this.formatDate(v.date), v.amount, v.description, v.category]),
+    };
+
+    const payload = {
+      spreadsheetId: this.sheetDetails.sheetId,
+      range: range,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      values: valueRangeBody.values
+    };
+
+    const url = !isLoginRequired ? this.configService.config.SHEET_ADD_URL :
+      this.configService.config.ADD_TRANSACTION_URL.replace("_SPREADSHEET_ID_", this.sheetDetails.sheetId).replace("_RANGE_", range);
+
+    const headers = !isLoginRequired ? new HttpHeaders({ 'Content-Type': 'text/plain' }) :
+      { Authorization: `Bearer ${this.accessToken}`, 'Content-Type': 'application/json' };
+    return !isLoginRequired ? this.http.post(url, payload, { headers }) : this.http.post(url, valueRangeBody, { headers });
   }
 
   handleSheetConnection() {

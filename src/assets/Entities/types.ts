@@ -34,6 +34,8 @@ export class TransactionMetadata {
   INCOME_QUERY : string = "";
   EXPENSE_QUERY : string = "";
   DOCUMENT_ID : string = "";
+  ISLOGINREQUIRED : string = "";
+  SHEET_ADD_URL : string = "";
   EXPENSE_CATEGORIES : string[] = [];
   INCOME_CATEGORIES : string[] = [];
   MONTH : StaticObject[] = [];

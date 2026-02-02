@@ -32,7 +32,9 @@ export class ConfigService {
           this.config.EXPENSE_CATEGORIES = data[0].expense_categories;
           this.config.INCOME_CATEGORIES = data[0].income_categories;
           this.config.MONTH = data[0].month;
-          this.config.DOCUMENT_ID = data[0].document_id
+          this.config.DOCUMENT_ID = data[0].document_id;
+          this.config.ISLOGINREQUIRED = data[0].isLoginRequired;
+          this.config.SHEET_ADD_URL = data[0].sheet_add_url;
           this.firstLoad = true;
         }
       });
