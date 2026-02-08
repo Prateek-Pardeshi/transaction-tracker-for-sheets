@@ -46,23 +46,23 @@ export class FirebaseDataService {
         recTrans.forEach(item => {
             if (item.date.includes('/')) {
                 const [day, month, year] = (item.date || '').split('/').map(Number);
+                item.date = `${day}/${currentMonth}/${year}`;
                 day <= currentDate && item.type === values.type && netTrans.push(item);
             } else if (item.date.includes('-')) {
                 const [year, month, day] = (item.date || '').split('-').map(Number);
+                item.date = `${day}/${currentMonth}/${year}`;
                 day <= currentDate && item.type === values.type && netTrans.push(item);
             }
         });
 
-        currentMonthTranx.forEach(tx => {
-            if (netTrans.length > 0) {
-                const idx = netTrans.findIndex(nt =>
-                    nt.category === tx.category &&
-                    nt.type === tx.type &&
-                    nt.amount === tx.amount &&
-                    nt.description === tx.description);
-                if (idx > -1) {
-                    netTrans.splice(idx, 1);
-                }
+        netTrans.length > 0 && currentMonthTranx.forEach(tx => {
+            const idx = netTrans.findIndex(nt =>
+                nt.category === tx.category &&
+                nt.type === tx.type &&
+                nt.amount === tx.amount &&
+                nt.description === tx.description);
+            if (idx > -1) {
+                netTrans.splice(idx, 1);
             }
         });
         netTrans.push(values);
