@@ -50,6 +50,7 @@ export class GoogleSheetsService implements OnInit {
   // user$: Observable<User | null> = user(this.auth);
   accessToken: string | null = null;
   transactions$: Observable<Transaction[]>;
+  summaryComponent: any;
 
   sheetDetails: SheetDetails = {
     sheetURL: '',
@@ -61,17 +62,18 @@ export class GoogleSheetsService implements OnInit {
     this.transactions$ = this.transactionsSubject.asObservable();
   }
 
+  notifySummaryUpdate(transactions: Transaction[]) {
+    if (this.summaryComponent) {
+      this.summaryComponent.showSummary = true;
+      this.summaryComponent.calculateSummary(transactions, true);
+    }
+  }
+
   //#region Sign In & Token Cration
 
   async signIn() {
     localStorage.removeItem(TransactionConstants.STORAGE_TOKEN);
     const provider = new GoogleAuthProvider();
-    // try {
-    //   await signInWithPopup(this.auth, provider);
-    //   // No need to manually redirect; the user$ stream will update automatically
-    // } catch (error) {
-    //   console.error('Login failed', error);
-    // }
     this.initGapi$().pipe(
       switchMap(() => this.initAuthClient$()),
       switchMap(() => this.requestAccessToken$())
@@ -81,16 +83,6 @@ export class GoogleSheetsService implements OnInit {
         this.notification.open(NotificationStyle.POPUP, err?.message, NotificationType.ERROR);
       },
     });
-  }
-
-  async getToken(): Promise<string | null> {
-    // const currentUser = this.auth.currentUser;
-    // if (currentUser) {
-    //   // forceRefresh = false (default) means it uses the cached token if valid
-    //   // It handles the refresh silently if expired
-    //   return await currentUser.getIdToken(false);
-    // }
-    return null;
   }
 
   signOut() {

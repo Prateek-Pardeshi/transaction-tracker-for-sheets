@@ -21,6 +21,7 @@ import { IconInjectorDirective } from '../directives/icon-injector.directive';
 import { NavMenuComponent } from './NavMenu/nav-menu.component';
 import { ChartsComponent } from './Charts/charts.component';
 import { AddDataRecordsComponent } from './Add-data-records/add-data-records.component';
+import { ChatSliderComponent } from './Chat-slider/chat-slider.component';
 @NgModule({
   declarations: [
     SheetConnectorComponent,
@@ -35,6 +36,7 @@ import { AddDataRecordsComponent } from './Add-data-records/add-data-records.com
     NavMenuComponent,
     ChartsComponent,
     AddDataRecordsComponent,
+    ChatSliderComponent,
     
     ArrowUpIconComponent,
     ArrowDownIconComponent,
@@ -62,7 +64,8 @@ import { AddDataRecordsComponent } from './Add-data-records/add-data-records.com
     AccessDeniedComponent,
     NavMenuComponent,
     ChartsComponent,
-    AddDataRecordsComponent
+    AddDataRecordsComponent,
+    ChatSliderComponent
   ]
 })
 export class SharedModule { }

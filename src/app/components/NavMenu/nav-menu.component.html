@@ -79,19 +79,25 @@
                 </svg>
                 
             </li>
-            <li class="menu-item" (click)="svgAction('login')">
+            <li class="menu-item mt-2" (click)="svgAction('login')">
                 <!-- Login icon -->
                 <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48">
                     <path fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
                         d="M25.36 20.372v8.163h9.524v9.523h8.162V20.372zM24.453 4.5a19.5 19.5 0 0 0 0 39v-9.07a10.43 10.43 0 0 1 0-20.86z" />
                 </svg>
             </li>
-            <li class="menu-item ml-10 text-gray-500 pointer-events-none cursor-not-allowed">
-                <svg class="transition-transform duration-150 active:scale-90 focus:outline-none" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M19.25 19.25L15.5 15.5M4.75 11C4.75 7.54822 7.54822 4.75 11 4.75C14.4518 4.75 17.25 7.54822 17.25 11C17.25 14.4518 14.4518 17.25 11 17.25C7.54822 17.25 4.75 14.4518 4.75 11Z">
-                    </path>
+            <li class="menu-item mt-2 text-gray-500" >
+                <button command="show-modal" commandfor="drawer" class="mr-3" (click)="svgAction('chat')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 48 48">
+                    <ellipse cx="24" cy="24" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" rx="9.636"
+                        ry="20.5" />
+                    <path fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round"
+                        d="M28.818 15.655c9.805 5.66 15.597 13.986 12.936 18.595c-2.661 4.609-12.767 3.756-22.572-1.905C9.377 26.685 3.586 18.36 6.247 13.75c1.064-1.843 3.318-2.813 6.267-2.95c4.427-.208 10.42 1.457 16.304 4.855Z" />
+                    <path fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round"
+                        d="M28.818 32.345c-9.805 5.661-19.91 6.514-22.572 1.905s3.13-12.934 12.936-18.595c5.662-3.27 11.424-4.935 15.795-4.871c3.198.046 5.652 1.018 6.777 2.966c2.66 4.609-3.13 12.934-12.936 18.595ZM20.43 21.251h7.14M19.314 24h9.372m-6.745 2.749h4.118" />
                 </svg>
+                </button>
+                
             </li>
             <li class="menu-item ml-12 pl-2 mb-3" (click)="svgAction('bottom')">
                 <!-- Bottom Icon -->

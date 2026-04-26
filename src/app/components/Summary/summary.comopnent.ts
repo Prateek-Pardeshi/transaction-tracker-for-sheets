@@ -36,22 +36,23 @@ export class SummaryComponent implements OnInit, OnChanges {
   get configService(): ConfigService { return this.injector.get(ConfigService) }
 
   ngOnInit(): void {
+    if(this.googleService) this.googleService.summaryComponent = this;
     this.setView(this.viewSummary);
-    this.calculateSummary();
+    this.calculateSummary(this.transactions);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['transactions']) {
-      this.calculateSummary();
+      this.calculateSummary(this.transactions);
     }
   }
 
-  private calculateSummary(): void {
-    let tempTransactions = _.cloneDeep(this.transactions);
+  calculateSummary(transactions: Transaction[], skipSubscription: boolean = false): void {
+    let tempTransactions = _.cloneDeep(transactions);
     if (this.duration === Duration.DAILY || this.duration === Duration.MONTHLY) {
       const currentDate = new Date().getDate();
       const currentMonth = this.month.id;
-      tempTransactions = this.transactions.filter(t => {
+      tempTransactions = transactions.filter(t => {
         const [day, month, year] = (t.date || '').split('/').map(Number);
         const txDate = new Date(year, month - 1, day);
         return this.duration === Duration.DAILY ?
@@ -60,7 +61,7 @@ export class SummaryComponent implements OnInit, OnChanges {
       });
     }
 
-    this.googleService.transactionsSubject.next(tempTransactions);
+    !skipSubscription && this.googleService.transactionsSubject.next(tempTransactions);
 
     this.totalIncome = tempTransactions
       .filter(t => t.type === TransactionType.INCOME)
@@ -120,7 +121,7 @@ export class SummaryComponent implements OnInit, OnChanges {
       this.months = this.configService.config.MONTH;
       this.month = this.months ? this.months[new Date().getMonth()] : this.month;
     }
-    this.calculateSummary();
+    this.calculateSummary(this.transactions);
   }
 
   setView(showChart: boolean, transactions: Transaction[] = []): void {

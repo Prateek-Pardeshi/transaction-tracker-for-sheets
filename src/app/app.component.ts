@@ -7,6 +7,7 @@ import { NotificationService } from './services/notification.service';
 import { NotificationStyle, NotificationType, TransactionConstants } from '@assets/Entities/enum';
 import { SpinnerService } from './services/spinner.service';
 import { SpinnerComponent } from './components/Spinner/spinner.component';
+import { ChatSliderComponent } from './components/Chat-slider/chat-slider.component';
 import { ConfigService } from './services/config.service';
 
 @Component({

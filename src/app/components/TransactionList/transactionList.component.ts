@@ -5,6 +5,7 @@ import { FirebaseDataService } from '@services/firebaseData.service';
 import { Subscription } from 'rxjs';
 import { TransactionType } from '@/assets/Entities/enum';
 import { ConfigService } from '@/app/services/config.service';
+import { SummaryComponent } from '@components/Summary/summary.comopnent';
 @Component({
   selector: 'app-transaction-list',
   standalone: false,
@@ -167,6 +168,7 @@ export class TransactionListComponent implements OnInit, OnDestroy {
     });
     this.pageDetails.currentPage = 1;
     this.applyPagination();
+    this.sheetService.notifySummaryUpdate(this.storedRecords);
     this.closePopUp();
   }
 
