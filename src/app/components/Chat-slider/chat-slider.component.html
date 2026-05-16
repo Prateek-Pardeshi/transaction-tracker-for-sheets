@@ -1,154 +1,118 @@
-<!-- <button command="show-modal" commandfor="drawer"
-    class="rounded-md bg-red-950/5 px-2.5 py-1.5 text-sm font-semibold text-red-900 hover:bg-gray-950/10">Open
-    drawer</button> -->
-
-<dialog id="drawer" aria-labelledby="drawer-title"
-    class="fixed inset-0 size-auto max-h-none max-w-none overflow-hidden bg-transparent not-open:hidden backdrop:bg-transparent">
-
-    <div tabindex="0" class="absolute inset-0 pl-10 focus:outline-none sm:pl-16">
-        <div
-            class="absolute top-0 left-18 -ml-8 flex pt-4 pr-2 duration-500 ease-in-out group-data-closed/dialog-panel:opacity-0 sm:-ml-10 sm:pr-4">
-            <button type="button" command="close" commandfor="drawer" (click)="closeSlider()"
-                class="relative rounded-md text-gray-400 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                <span class="absolute -inset-2.5"></span>
-                <span class="sr-only">Close panel</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon"
-                    aria-hidden="true" class="size-6">
-                    <path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-            </button>
-        </div>
-
-        <div
-            class="relative flex h-full flex-col overflow-hidden bg-gray-800 py-2 shadow-xl after:absolute after:inset-y-0 after:left-0 after:w-px after:bg-white/10">
-            <div class="px-4 sm:px-6">
-                <h1 class="text-xl font-bold tracking-tight sm:text-4xl text-gray-200">Financial Assistant</h1>
-                <p class="text-md text-gray-600 dark:text-gray-400">Your personal finance assistant.</p>
-            </div>
-            <hr class="border-gray-600 mt-2" />
-
-            <!-- Chat content -->
-            <div class="relative mt-6 flex-1 px-4 sm:px-6">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 mb-3 relative">
+    <div class="flex justify-between items-center">
+        <div class="relative flex-1 mt-4 px-4 sm:px-6">
                 <!-- Messages -->
-                    <div #scrollContainer class="flex-1 px-5 py-6 space-y-4 h-[440px] max-h-[487px] [scrollbar-width:thin] overflow-y-auto scroll-smooth [scrollbar-color:#2a2a2a_transparent]">
-                        <!-- Date divider -->
-                        <div class="flex items-center gap-3 my-2">
-                            <div class="flex-1 h-px bg-[#1f1f1f]"></div>
-                            <span class="text-[#444] text-xs tracking-widest uppercase">Today</span>
-                            <div class="flex-1 h-px bg-[#1f1f1f]"></div>
-                        </div>
+                <div #scrollContainer
+                    class="flex-1 space-y-4 h-[440px] max-h-[487px] [scrollbar-width:thin] overflow-y-auto scroll-smooth [scrollbar-color:#2a2a2a_transparent]">
 
-                        @for (msg of messages(); track msg.id) {
-                        <div class="flex items-end gap-2 transition-all duration-300 ease-out"
-                            [class]="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
+                    @for (msg of messages(); track msg.id) {
+                    <div class="flex items-end gap-2 transition-all duration-300 ease-out"
+                        [class]="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
 
-                            <!-- Bot avatar -->
-                            @if (msg.sender === 'bot') {
-                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#e5c97e] to-[#c8a84b]
+                        <!-- Bot avatar -->
+                        @if (msg.sender === 'bot') {
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#e5c97e] to-[#c8a84b]
                           flex items-center justify-center text-[#0d0d0d] text-[10px] font-bold shrink-0 mb-1">
-                                AI
-                            </div>
-                            }
-
-                            <div [class]="msg.sender === 'user' ? 'items-end' : 'items-start'"
-                                class="flex flex-col gap-1 max-w-[75%]">
-                                <div class="px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-all duration-200"
-                                    [class]="msg.sender === 'user'
-                  ? 'bg-[#e5c97e] text-[#0d0d0d] rounded-br-sm font-medium'
-                  : 'bg-[#1a1a1a] text-[#d4cfc8] border border-[#242424] rounded-bl-sm'" [innerHTML]="msg.text">
-                                    {{ msg.text }}
-                                </div>
-                                <!-- Time + status -->
-                                <div class="flex items-center gap-1 px-1"
-                                    [class]="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
-                                    <span class="text-[#3a3a3a] text-[10px]">{{ msg.time }}</span>
-                                    @if (msg.sender === 'user') {
-                                    <span class="text-[10px]"
-                                        [class]="msg.status === 'read' ? 'text-[#e5c97e]' : 'text-[#3a3a3a]'">
-                                        {{ msg.status === 'read' ? '✓✓' : msg.status === 'delivered' ? '✓✓' : '✓' }}
-                                    </span>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- User avatar -->
-                            @if (msg.sender === 'user') {
-                            <div class="w-7 h-7 rounded-full bg-[#1f1f1f] border border-[#2a2a2a]
-                          flex items-center justify-center text-[#888] text-[10px] shrink-0 mb-1">
-                                You
-                            </div>
-                            }
+                            AI
                         </div>
                         }
 
-                        <!-- Typing indicator -->
-                        @if (isTyping()) {
-                        <div class="flex items-end gap-2 justify-start">
-                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#e5c97e] to-[#c8a84b]
-                        flex items-center justify-center text-[#0d0d0d] text-[10px] font-bold shrink-0">
-                                AI
+                        <div [class]="msg.sender === 'user' ? 'items-end' : 'items-start'"
+                            class="flex flex-col gap-1 max-w-[75%]">
+                            <div class="px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-all duration-200"
+                                [class]="msg.sender === 'user'
+                  ? 'bg-[#e5c97e] text-[#0d0d0d] rounded-br-sm font-medium'
+                  : 'bg-[#1a1a1a] text-[#d4cfc8] border border-[#242424] rounded-bl-sm'" [innerHTML]="msg.text">
+                                {{ msg.text }}
                             </div>
-                            <div
-                                class="bg-[#1a1a1a] border border-[#242424] px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1.5 items-center">
-                                <span
-                                    class="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce [animation-delay:0ms]"></span>
-                                <span
-                                    class="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce [animation-delay:150ms]"></span>
-                                <span
-                                    class="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce [animation-delay:300ms]"></span>
+                            <!-- Time + status -->
+                            <div class="flex items-center gap-1 px-1"
+                                [class]="msg.sender === 'user' ? 'justify-end' : 'justify-start'">
+                                <span class="text-[#3a3a3a] text-[10px]">{{ msg.time }}</span>
+                                @if (msg.sender === 'user') {
+                                <span class="text-[10px]"
+                                    [class]="msg.status === 'read' ? 'text-[#e5c97e]' : 'text-[#3a3a3a]'">
+                                    {{ msg.status === 'read' ? '✓✓' : msg.status === 'delivered' ? '✓✓' : '✓' }}
+                                </span>
+                                }
                             </div>
+                        </div>
+
+                        <!-- User avatar -->
+                        @if (msg.sender === 'user') {
+                        <div class="w-7 h-7 rounded-full bg-[#1f1f1f] border border-[#2a2a2a]
+                          flex items-center justify-center text-[#888] text-[10px] shrink-0 mb-1">
+                            You
                         </div>
                         }
                     </div>
+                    }
 
-                    <!-- Input Bar -->
-                    <div class="px-4 py-3 border-t border-[#1f1f1f] bg-[#111] shrink-0">
-                        <div class="flex items-end gap-3 bg-[#1a1a1a] border border-[#242424] rounded-2xl px-4 py-2
+                    <!-- Typing indicator -->
+                    @if (isTyping()) {
+                    <div class="flex items-end gap-2 justify-start">
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#e5c97e] to-[#c8a84b]
+                        flex items-center justify-center text-[#0d0d0d] text-[10px] font-bold shrink-0">
+                            AI
+                        </div>
+                        <div
+                            class="bg-[#1a1a1a] border border-[#242424] px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1.5 items-center">
+                            <span
+                                class="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce [animation-delay:0ms]"></span>
+                            <span
+                                class="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce [animation-delay:150ms]"></span>
+                            <span
+                                class="w-1.5 h-1.5 bg-[#555] rounded-full animate-bounce [animation-delay:300ms]"></span>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <!-- Input Bar -->
+                <div class="px-4 py-3 border-t border-[#1f1f1f] bg-[#111] shrink-0">
+                    <div class="flex items-end gap-3 bg-[#1a1a1a] border border-[#242424] rounded-2xl px-4 py-2
                     focus-within:border-[#e5c97e] transition-colors duration-200">
 
-                            <!-- Emoji button -->
-                            <button
-                                class="text-[#555] hover:text-[#e5c97e] transition-colors duration-200 pb-1.5 shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" stroke-width="1.5" />
-                                    <path stroke-linecap="round" stroke-width="1.5"
-                                        d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
-                                </svg>
-                            </button>
+                        <!-- Emoji button -->
+                        <button class="text-[#555] hover:text-[#e5c97e] transition-colors duration-200 pb-1.5 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke-width="1.5" />
+                                <path stroke-linecap="round" stroke-width="1.5"
+                                    d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+                            </svg>
+                        </button>
 
-                            <!-- Textarea -->
-                            <textarea #inputRef [(ngModel)]="inputText" (keydown.enter)="onEnter($event)"
-                                (input)="autoResize()" placeholder="Type a message..." rows="1" class="flex-1 bg-transparent text-[#f0ece4] text-sm placeholder-[#3a3a3a]
+                        <!-- Textarea -->
+                        <textarea #inputRef [(ngModel)]="inputText" (keydown.enter)="onEnter($event)"
+                            (input)="autoResize()" placeholder="Type a message..." rows="1" class="flex-1 bg-transparent text-[#f0ece4] text-sm placeholder-[#3a3a3a]
                    resize-none outline-none leading-relaxed py-1.5
                    max-h-32 overflow-y-auto" style="scrollbar-width: none;">
           </textarea>
 
-                            <!-- Attach button -->
-                            <button
-                                class="text-[#555] hover:text-[#e5c97e] transition-colors duration-200 pb-1.5 shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                </svg>
-                            </button>
+                        <!-- Attach button -->
+                        <button class="text-[#555] hover:text-[#e5c97e] transition-colors duration-200 pb-1.5 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                        </button>
 
-                            <!-- Send button -->
-                            <button (click)="send()" [disabled]="!inputText.trim()"
-                                class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mb-0.5
+                        <!-- Send button -->
+                        <button (click)="send()" [disabled]="!inputText.trim()"
+                            class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mb-0.5
                    transition-all duration-200
                    disabled:bg-[#1f1f1f] disabled:text-[#333] disabled:cursor-not-allowed
                    enabled:bg-[#e5c97e] enabled:text-[#0d0d0d] enabled:hover:scale-105 enabled:hover:shadow-[0_0_12px_rgba(229,201,126,0.4)]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <p class="text-center text-[#2a2a2a] text-[10px] mt-2 tracking-wider">
-                            Press Enter to send · Shift+Enter for new line
-                        </p>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                            </svg>
+                        </button>
                     </div>
+                    <p class="text-center text-[#2a2a2a] text-[10px] mt-2 tracking-wider">
+                        Press Enter to send · Shift+Enter for new line
+                    </p>
+                </div>
             </div>
-        </div>
     </div>
-</dialog>
+</div>

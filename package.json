@@ -7,6 +7,7 @@
     "start": "ng serve",
     "serve": "ng serve",
     "build": "ng build --configuration production",
+    "analyze": "ng build --configuration production --stats-json && webpack-bundle-analyzer dist/stats.json",
     "test": "echo \"No test configured\" && exit 0",
     "lint": "echo \"No lint configured\" && exit 0"
   },
@@ -26,11 +27,13 @@
     "firebase": "^10.14.1",
     "gapi-script": "^1.2.0",
     "gsap": "^3.13.0",
+    "lodash": "^4.17.21",
     "rxjs": "7.8.1",
     "zone.js": "^0.14.7"
   },
   "devDependencies": {
     "@types/node": "^20.14.12",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "webpack-bundle-analyzer": "^4.10.1"
   }
 }

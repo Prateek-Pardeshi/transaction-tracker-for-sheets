@@ -1,4 +1,4 @@
-import { Inject, Injectable, Injector } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { FirebaseDataService } from '@services/firebaseData.service';
 import { TransactionConstants } from '@assets/Entities/enum';
 import { TransactionMetadata } from '@assets/Entities/types';
@@ -9,9 +9,7 @@ export class ConfigService {
   config = new TransactionMetadata();
   firstLoad: boolean = false;
 
-  constructor(@Inject(Injector) private injector: Injector) { }
-
-  get firebaseService(): FirebaseDataService { return this.injector.get(FirebaseDataService) }
+  constructor(private firebaseService: FirebaseDataService) { }
 
   loadMetadata(): Promise<void> {
     if(this.firstLoad) return new Promise(null);

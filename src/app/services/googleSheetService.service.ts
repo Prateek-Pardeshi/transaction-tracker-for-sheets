@@ -1,11 +1,11 @@
 declare const gapi: any;
 declare const google: any;
 
-import { Inject, Injectable, Injector, OnInit, inject } from '@angular/core';
+import { Injectable, OnInit, OnDestroy } from '@angular/core';
 import { Transaction, SheetDetails } from '@assets/Entities/types';
 import { NotificationStyle, NotificationType, TransactionType, TransactionConstants } from '@assets/Entities/enum';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer, Subject, of, Subscription } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, from, Observable, switchMap, timer, Subject, of, Subscription, takeUntil } from 'rxjs';
 import { Auth, GoogleAuthProvider, signInWithPopup, user, User } from '@angular/fire/auth';
 import { NotificationService } from './notification.service';
 import { FirebaseDataService } from './firebaseData.service';
@@ -14,18 +14,22 @@ import { SheetURL } from '@assets/Entities/enum';
 import { ConfigService } from './config.service';
 
 @Injectable({ providedIn: 'root' })
-export class GoogleSheetsService implements OnInit {
+export class GoogleSheetsService implements OnInit, OnDestroy {
 
-  constructor(@Inject(Injector) private injector: Injector, private http: HttpClient) {
+  private destroy$ = new Subject<void>();
 
-    this.dataService.getTransactions(TransactionConstants.COLLECTION_RECURRING_TRANSACTION).subscribe((data: Transaction[]) => {
-      this.recuringTransactions = data;
-    });
+  constructor(
+    private notification: NotificationService,
+    private dataService: FirebaseDataService,
+    private configService: ConfigService,
+    private http: HttpClient
+  ) {
+    this.dataService.getTransactions(TransactionConstants.COLLECTION_RECURRING_TRANSACTION)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data: Transaction[]) => {
+        this.recuringTransactions = data;
+      });
   }
-
-  get notification(): NotificationService { return this.injector.get(NotificationService); }
-  get dataService(): FirebaseDataService { return this.injector.get(FirebaseDataService); }
-  get configService(): ConfigService { return this.injector.get(ConfigService); }
 
   private client_secret = environment.googleClientSecret;
   private clientId = environment.googleClientId;
@@ -49,6 +53,11 @@ export class GoogleSheetsService implements OnInit {
     sheetId: '',
     sheetName: '',
     transactionList: []
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   };
 
   ngOnInit() {

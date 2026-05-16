@@ -33,7 +33,8 @@ export class NavMenuComponent {
         this.router.navigate(['/addRecord']);
         break;
       case 'chat':
-        document.body.classList.add('overflow-hidden');
+        this.router.navigate(['/ai-chat']);
+        // document.body.classList.add('overflow-hidden');
         break;
     }
   }

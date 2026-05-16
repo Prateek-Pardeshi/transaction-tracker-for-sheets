@@ -1,8 +1,7 @@
-import { Component, Inject, Injector, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionType, Duration } from '@assets/Entities/enum';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
-import _ from 'lodash';
 import { ConfigService } from '@/app/services/config.service';
 @Component({
   selector: 'app-summary',
@@ -18,7 +17,10 @@ export class SummaryComponent implements OnInit, OnChanges {
   @ViewChild('summaryTemplate', { static: true }) summaryTemplateTemplateRef!: TemplateRef<any>;
   @ViewChild('chartTemplate', { static: true }) chartTemplateTemplateRef!: TemplateRef<any>;
 
-  constructor(@Inject(Injector) private injector: Injector) { }
+  constructor(
+    private googleService: GoogleSheetsService,
+    private configService: ConfigService
+  ) { }
 
   showSummary: boolean = false;
   duration: string = Duration.YEARLY;
@@ -32,11 +34,10 @@ export class SummaryComponent implements OnInit, OnChanges {
   months = [];
   month: any = new Date().getMonth() + 1;
 
-  get googleService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService) }
-  get configService(): ConfigService { return this.injector.get(ConfigService) }
+  get googleSheetService(): GoogleSheetsService { return this.googleService; }
 
   ngOnInit(): void {
-    if(this.googleService) this.googleService.summaryComponent = this;
+    if(this.googleSheetService) this.googleSheetService.summaryComponent = this;
     this.setView(this.viewSummary);
     this.calculateSummary(this.transactions);
   }
@@ -48,7 +49,7 @@ export class SummaryComponent implements OnInit, OnChanges {
   }
 
   calculateSummary(transactions: Transaction[], skipSubscription: boolean = false): void {
-    let tempTransactions = _.cloneDeep(transactions);
+    let tempTransactions = transactions.map(t => ({ ...t }));
     if (this.duration === Duration.DAILY || this.duration === Duration.MONTHLY) {
       const currentDate = new Date().getDate();
       const currentMonth = this.month.id;
@@ -61,7 +62,7 @@ export class SummaryComponent implements OnInit, OnChanges {
       });
     }
 
-    !skipSubscription && this.googleService.transactionsSubject.next(tempTransactions);
+    !skipSubscription && this.googleSheetService.transactionsSubject.next(tempTransactions);
 
     this.totalIncome = tempTransactions
       .filter(t => t.type === TransactionType.INCOME)

@@ -27,7 +27,16 @@
             },
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "tsConfig": "tsconfig.json"
+            "tsConfig": "tsconfig.json",
+            "budgets": [
+              {
+                "type": "bundle",
+                "name": "main",
+                "baseline": "500kb",
+                "warning": "450kb",
+                "error": "600kb"
+              }
+            ]
           },
           "configurations": {
             "production": {
