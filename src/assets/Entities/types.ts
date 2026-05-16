@@ -14,6 +14,7 @@ export interface SheetDetails {
   sheetURL: string;
   sheetId: string;
   sheetName: string;
+  transactionList: Transaction[]
 }
 
 export interface StaticObject {
@@ -36,6 +37,7 @@ export class TransactionMetadata {
   DOCUMENT_ID : string = "";
   ISLOGINREQUIRED : string = "";
   SHEET_ADD_URL : string = "";
+  FINANCE_API_URL : string = "";
   EXPENSE_CATEGORIES : string[] = [];
   INCOME_CATEGORIES : string[] = [];
   MONTH : StaticObject[] = [];

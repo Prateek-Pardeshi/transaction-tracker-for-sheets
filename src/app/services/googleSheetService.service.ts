@@ -17,14 +17,6 @@ import { ConfigService } from './config.service';
 export class GoogleSheetsService implements OnInit {
 
   constructor(@Inject(Injector) private injector: Injector, private http: HttpClient) {
-    // this.user$.subscribe(async (currentUser) => {
-    //   if (currentUser) {
-    //     const token = await currentUser.getIdToken();
-    //     console.log('Logged in silently! Token:', token);
-    //   } else {
-    //     console.log('Not logged in');
-    //   }
-    // });
 
     this.dataService.getTransactions(TransactionConstants.COLLECTION_RECURRING_TRANSACTION).subscribe((data: Transaction[]) => {
       this.recuringTransactions = data;
@@ -55,7 +47,8 @@ export class GoogleSheetsService implements OnInit {
   sheetDetails: SheetDetails = {
     sheetURL: '',
     sheetId: '',
-    sheetName: ''
+    sheetName: '',
+    transactionList: []
   };
 
   ngOnInit() {

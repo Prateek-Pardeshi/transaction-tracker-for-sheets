@@ -30,7 +30,7 @@
             <!-- Chat content -->
             <div class="relative mt-6 flex-1 px-4 sm:px-6">
                 <!-- Messages -->
-                    <div #scrollContainer class="flex-1 px-5 py-6 space-y-4 max-h-[487px] [scrollbar-width:thin] overflow-y-auto scroll-smooth [scrollbar-color:#2a2a2a_transparent]">
+                    <div #scrollContainer class="flex-1 px-5 py-6 space-y-4 h-[440px] max-h-[487px] [scrollbar-width:thin] overflow-y-auto scroll-smooth [scrollbar-color:#2a2a2a_transparent]">
                         <!-- Date divider -->
                         <div class="flex items-center gap-3 my-2">
                             <div class="flex-1 h-px bg-[#1f1f1f]"></div>
@@ -55,7 +55,7 @@
                                 <div class="px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-all duration-200"
                                     [class]="msg.sender === 'user'
                   ? 'bg-[#e5c97e] text-[#0d0d0d] rounded-br-sm font-medium'
-                  : 'bg-[#1a1a1a] text-[#d4cfc8] border border-[#242424] rounded-bl-sm'">
+                  : 'bg-[#1a1a1a] text-[#d4cfc8] border border-[#242424] rounded-bl-sm'" [innerHTML]="msg.text">
                                     {{ msg.text }}
                                 </div>
                                 <!-- Time + status -->

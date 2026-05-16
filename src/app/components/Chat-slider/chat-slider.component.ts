@@ -1,4 +1,8 @@
-import { AfterViewChecked, Component, ElementRef, signal, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, Inject, Injector, signal, ViewChild } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { GoogleSheetsService } from '@/app/services/googleSheetService.service';
+import { map, Observable } from 'rxjs';
+import { ConfigService } from '@services/config.service';
 
 interface Message {
   id: number;
@@ -17,21 +21,18 @@ export class ChatSliderComponent implements AfterViewChecked {
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   @ViewChild('inputRef') inputRef!: ElementRef;
 
+  constructor(@Inject(Injector) private injector: Injector, private http: HttpClient) {}
+
+  get sheetsService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService); }
+  get configService(): ConfigService { return this.injector.get(ConfigService); }
+
   inputText = '';
   isTyping = signal(false);
+  sessionId = 'default';
 
   messages = signal<Message[]>([
     { id: 1, text: 'Hey! How can I help you today?', sender: 'bot', time: '9:41 AM' },
-    { id: 2, text: 'I need help with my Angular component.', sender: 'user', time: '9:42 AM', status: 'read' },
-    { id: 3, text: 'Sure! What are you building? I can help with templates, signals, routing, or anything else.', sender: 'bot', time: '9:42 AM' },
-    { id: 4, text: 'A chat UI with Tailwind CSS 😄', sender: 'user', time: '9:43 AM', status: 'read' },
-    { id: 5, text: 'Great choice! Here\'s a fully working component. Let me know if you want any changes.', sender: 'bot', time: '9:43 AM' },
-    { id: 6, text: 'Hey! How can I help you today?', sender: 'bot', time: '9:41 AM' },
-    { id: 7, text: 'I need help with my Angular component.', sender: 'user', time: '9:42 AM', status: 'read' },
-    { id: 8, text: 'Sure! What are you building? I can help with templates, signals, routing, or anything else.', sender: 'bot', time: '9:42 AM' },
-    { id: 9, text: 'A chat UI with Tailwind CSS 😄', sender: 'user', time: '9:43 AM', status: 'read' },
-    { id: 10, text: 'Great choice! Here\'s a fully working component. Let me know if you want any changes.', sender: 'bot', time: '9:43 AM' },
-  ]);
+    ]);
 
   private shouldScroll = false;
 
@@ -68,19 +69,24 @@ export class ChatSliderComponent implements AfterViewChecked {
     this.isTyping.set(true);
     this.shouldScroll = true;
 
-    setTimeout(() => {
-      this.isTyping.set(false);
-      this.messages.update(msgs => [
-        ...msgs,
-        {
-          id: Date.now() + 1,
-          text: this.getBotReply(text),
-          sender: 'bot',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
-      this.shouldScroll = true;
-    }, 1500);
+    this.getBotReply(text).subscribe({ 
+      next: (response) => {
+        this.isTyping.set(false);
+        this.messages.update(msgs => [
+          ...msgs,
+          {
+            id: Date.now() + 1,
+            text: response,
+            sender: 'bot',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        this.shouldScroll = true;
+      },
+      error: (error) => {
+        this.isTyping.set(false);
+      }
+    });
   }
 
   autoResize(): void {
@@ -101,15 +107,18 @@ export class ChatSliderComponent implements AfterViewChecked {
     if (el) el.scrollTop = el.scrollHeight;
   }
 
-  private getBotReply(text: string): string {
-    const replies = [
-      'That\'s a great point! Let me think about that...',
-      'Got it! Here\'s what I suggest...',
-      'Interesting! Could you tell me more?',
-      'I\'m on it! Give me a moment.',
-      'Absolutely! Here\'s how you can approach this.',
-    ];
-    return replies[Math.floor(Math.random() * replies.length)];
+  private getBotReply(text: string): Observable<any> {
+    const url = this.configService.config.FINANCE_API_URL + '/chat/send';
+    const payload = { session_id: this.sessionId, message: text, data: this.sheetsService.sheetDetails.transactionList || [] };
+    return this.http.post(url, payload, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }).pipe(
+      map((res: any) => {
+        const response = JSON.parse(res.response) || 'Sorry, I couldn\'t process that.';
+        this.sessionId = response.session_id || this.sessionId;
+        return response.response;
+      })
+    );
   }
 
   closeSlider(): void {

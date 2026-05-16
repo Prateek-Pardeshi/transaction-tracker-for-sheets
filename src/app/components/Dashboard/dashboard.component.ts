@@ -137,6 +137,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.transactions = [...idata, ...edata];
       if (this.transactions && this.transactions.length > 0)
         this.transactions = this.sheetsService.sortTransactions(this.transactions);
+      if (this.sheetsService.sheetDetails)
+        this.sheetsService.sheetDetails.transactionList = this.transactions
       this.SpinnerService.stopSpinner();
     });
   }

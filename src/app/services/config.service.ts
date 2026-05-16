@@ -35,6 +35,7 @@ export class ConfigService {
           this.config.DOCUMENT_ID = data[0].document_id;
           this.config.ISLOGINREQUIRED = data[0].isLoginRequired;
           this.config.SHEET_ADD_URL = data[0].sheet_add_url;
+          this.config.FINANCE_API_URL = data[0].finance_api_url;
           this.firstLoad = true;
         }
       });
