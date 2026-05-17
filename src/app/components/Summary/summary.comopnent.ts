@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectorRef } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionType, Duration } from '@assets/Entities/enum';
 import { GoogleSheetsService } from '@services/googleSheetService.service';
@@ -19,7 +19,8 @@ export class SummaryComponent implements OnInit, OnChanges {
 
   constructor(
     private googleService: GoogleSheetsService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   showSummary: boolean = false;
@@ -109,6 +110,7 @@ export class SummaryComponent implements OnInit, OnChanges {
       if (progress < 1) {
         requestAnimationFrame(animate);
       }
+      this.cdr.detectChanges();
     };
     requestAnimationFrame(animate);
   }

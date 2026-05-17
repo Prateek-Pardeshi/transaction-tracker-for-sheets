@@ -1,6 +1,6 @@
 import { Transaction, TransactionMetadata } from '@/assets/Entities/types';
 import { NotificationStyle, NotificationType, TransactionConstants } from '@assets/Entities/enum';
-import { Component, OnInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { FirebaseDataService } from '@/app/services/firebaseData.service';
 import { NotificationService } from '@services/notification.service';
@@ -26,7 +26,8 @@ export class AddDataRecordsComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private SpinnerService: SpinnerService,
     private configService: ConfigService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) { }
 
   isConnected = false;
@@ -43,6 +44,7 @@ export class AddDataRecordsComponent implements OnInit, OnDestroy {
     this.loadData();
     this.fetchMetadata();
     this.copySheetURL = this.configService.config.COPY_SHEET_URL;
+    this.cdr.detectChanges();
   }
 
   loadData() {
@@ -123,11 +125,13 @@ export class AddDataRecordsComponent implements OnInit, OnDestroy {
         if (this.txFormComponent) {
           this.txFormComponent.resetForm();
         }
+        this.cdr.detectChanges();
       });
   }
 
   valueChange(key:string, value: any): void {
     this.metadata[key] = value;
+    this.cdr.detectChanges();
   }
 
   isArray(value: any): boolean {

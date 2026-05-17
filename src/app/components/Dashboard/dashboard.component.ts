@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionType } from '@assets/Entities/enum';
@@ -8,10 +8,8 @@ import { TransactionFormComponent } from '../TransactionForm/transactionForm.com
 import { SheetConnectorComponent } from '../SheetConnector/sheetConnector.component';
 import { NotificationService } from '@services/notification.service';
 import { NotificationStyle, NotificationType } from '@assets/Entities/enum';
-import { ActivatedRoute, Router } from '@angular/router';
 import { SpinnerService } from '@services/spinner.service';
 import { ConfigService } from '@services/config.service';
-import { resolve } from 'path';
 
 const initialTransactions: Transaction[] = [];
 
@@ -39,7 +37,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private sheetsService: GoogleSheetsService,
     private notificationService: NotificationService,
     private SpinnerService: SpinnerService,
-    private configService: ConfigService
+    private cdr: ChangeDetectorRef
   ) {
     this.sheetsService.accessToken = localStorage.getItem('token') ? localStorage.getItem('token') : null;
   }
@@ -90,14 +88,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (resonse) => {
             if (resonse != null) {
-              // this.transactions.unshift(transaction);
               this.transactions = this.sheetsService.sortTransactions(this.transactions);
               this.sheetsService.transactionsSubject.next(this.transactions);
               this.notificationService.open(NotificationStyle.TOAST, 'Transaction Added!', NotificationType.SUCCESS, 1500);
+              this.cdr.detectChanges();
             }
           },
           error: (err) => {
             this.notificationService.open(NotificationStyle.POPUP, err.message ? err.message : err, NotificationType.ERROR);
+            this.cdr.detectChanges();
           }
         });
       resolve();
@@ -150,6 +149,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (this.sheetsService.sheetDetails)
           this.sheetsService.sheetDetails.transactionList = this.transactions
         this.SpinnerService.stopSpinner();
+        this.cdr.detectChanges();
       });
   }
 

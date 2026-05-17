@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { gsap } from 'gsap';
 import { Transaction } from '@assets/Entities/types';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
@@ -45,12 +45,13 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   value: number = 0;
   color: string = "#fff";
 
-  constructor() { }
+  constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.loadChart();
+    this.cdr.detectChanges();
   }
 
   loadChart(): void {
@@ -424,6 +425,7 @@ export class ChartsComponent implements OnInit, AfterViewInit {
       if (progress < 1) {
         requestAnimationFrame(animate);
       }
+      this.cdr.detectChanges();
     };
     requestAnimationFrame(animate);
   }
