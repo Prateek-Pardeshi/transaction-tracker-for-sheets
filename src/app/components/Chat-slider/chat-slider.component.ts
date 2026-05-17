@@ -74,7 +74,6 @@ export class ChatSliderComponent implements OnInit, AfterViewChecked, OnDestroy 
     ]);
 
     this.inputText = '';
-    this.resetTextarea();
     this.shouldScroll = true;
 
     // Simulate bot reply
@@ -99,44 +98,32 @@ export class ChatSliderComponent implements OnInit, AfterViewChecked, OnDestroy 
           this.shouldScroll = true;
         },
         error: (error) => {
-          if (error.detail)
+          this.shouldScroll = true;
+          if (error.error && error.error.detail)
           this.messages.update(msgs => [
             ...msgs,
             {
               id: Date.now() + 1,
-              text: error.detail || 'Sorry, something went wrong.',
+              text: error.error.detail || 'Sorry, something went wrong.',
               sender: 'bot',
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               suggestions: []
             }
           ]);
           this.isTyping.set(false);
+          this.scrollToBottom();
         }
       });
-  }
-
-  autoResize(): void {
-    const el = this.inputRef?.nativeElement;
-    if (el) {
-      el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 128) + 'px';
-    }
-  }
-
-  private resetTextarea(): void {
-    const el = this.inputRef?.nativeElement;
-    if (el) el.style.height = 'auto';
   }
 
   private scrollToBottom(): void {
     const el = this.scrollContainer?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
+    window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
   }
 
   onSugestionClick(suggestion: string): void {
     this.inputText = suggestion;
-    this.autoResize();
-    this.inputRef.nativeElement.focus();
     this.send();
   }
 
@@ -146,13 +133,11 @@ export class ChatSliderComponent implements OnInit, AfterViewChecked, OnDestroy 
 
   selectAIModel(model: any): void {
     this.selectedModel = model;
-    this.autoResize();
     this.closeAIModelDropdown();
   }
 
   closeAIModelDropdown(): void {
     this.isAIModelsDropdownOpen.set(false);
-    this.inputRef.nativeElement.focus();
   }
 
   ngOnDestroy(): void {
