@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Injector, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionType } from '@assets/Entities/enum';
 import { ConfigService } from '@/app/services/config.service';
@@ -7,6 +7,7 @@ import { ConfigService } from '@/app/services/config.service';
   selector: 'app-transaction-form',
   standalone: false,
   templateUrl: './transactionForm.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransactionFormComponent implements OnInit {
   @Input() isSaving: boolean = false;
@@ -23,9 +24,7 @@ export class TransactionFormComponent implements OnInit {
   filteredCategories: string[] = [];
   showSuggestions: boolean = false;
 
-  constructor(@Inject(Injector) private injector: Injector) {}
-
-  get configService(): ConfigService { return this.injector.get(ConfigService) }
+  constructor(private configService: ConfigService) {}
 
   ngOnInit() {
     this.category = this.currentCategories[0];

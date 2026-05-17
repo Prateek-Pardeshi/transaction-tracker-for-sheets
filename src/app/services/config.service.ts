@@ -34,6 +34,8 @@ export class ConfigService {
           this.config.ISLOGINREQUIRED = data[0].isLoginRequired;
           this.config.SHEET_ADD_URL = data[0].sheet_add_url;
           this.config.FINANCE_API_URL = data[0].finance_api_url;
+          this.config.AI_MODELS_LIST = data[0].ai_models_list || [];
+          this.config.AI_MODELS_LIST = this.config.AI_MODELS_LIST.sort((a, b) => a.name.localeCompare(b.name));
           this.firstLoad = true;
         }
       });

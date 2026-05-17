@@ -1,16 +1,15 @@
-import { Component, Inject, Injector } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { GoogleSheetsService } from '@services/googleSheetService.service'
 
 @Component({
   selector: 'app-access-denied',
   standalone: false,
-  templateUrl: './access-denied.component.html'
+  templateUrl: './access-denied.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccessDeniedComponent {
 
-  constructor(@Inject(Injector) private inject: Injector) { }
-
-  get sheetsService(): GoogleSheetsService { return this.inject.get(GoogleSheetsService); }
+  constructor(private sheetsService: GoogleSheetsService) { }
 
   goBack() {
     if (history.length > 1) {

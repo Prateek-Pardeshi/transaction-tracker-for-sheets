@@ -1,6 +1,7 @@
 import { Transaction, TransactionMetadata } from '@/assets/Entities/types';
 import { NotificationStyle, NotificationType, TransactionConstants } from '@assets/Entities/enum';
-import { Component, Inject, Injector, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
 import { FirebaseDataService } from '@/app/services/firebaseData.service';
 import { NotificationService } from '@services/notification.service';
 import { SpinnerService } from '@services/spinner.service';
@@ -11,12 +12,22 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-add-data-records',
   standalone: false,
-  templateUrl: './add-data-records.component.html'
+  templateUrl: './add-data-records.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddDataRecordsComponent implements OnInit {
+export class AddDataRecordsComponent implements OnInit, OnDestroy {
   @ViewChild(TransactionFormComponent) private txFormComponent!: TransactionFormComponent;
 
-  constructor(@Inject(Injector) private injector: Injector, private router: Router) { }
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private dataService: FirebaseDataService,
+    private sheetService: GoogleSheetsService,
+    private notificationService: NotificationService,
+    private SpinnerService: SpinnerService,
+    private configService: ConfigService,
+    private router: Router
+  ) { }
 
   isConnected = false;
   sheetUrl = '';
@@ -28,12 +39,6 @@ export class AddDataRecordsComponent implements OnInit {
   metadata: TransactionMetadata = new TransactionMetadata()
   isSaving: boolean = false;
 
-  get dataService(): FirebaseDataService { return this.injector.get(FirebaseDataService) }
-  get sheetService(): GoogleSheetsService { return this.injector.get(GoogleSheetsService) }
-  get notificationService(): NotificationService { return this.injector.get(NotificationService); }
-  get SpinnerService(): SpinnerService { return this.injector.get(SpinnerService); }
-  get configService(): ConfigService { return this.injector.get(ConfigService); }
-
   ngOnInit(): void {
     this.loadData();
     this.fetchMetadata();
@@ -43,6 +48,7 @@ export class AddDataRecordsComponent implements OnInit {
   loadData() {
     this.SpinnerService.startSpinner();
     this.dataService.getTransactions(TransactionConstants.COLLECTION_RECURRING_TRANSACTION)
+      .pipe(takeUntil(this.destroy$))
       .subscribe((data: Transaction[]) => {
         this.transactions = data;
         this.transactions.forEach(item => {
@@ -64,6 +70,7 @@ export class AddDataRecordsComponent implements OnInit {
       this.SpinnerService.stopSpinner();
     } else {
       this.dataService.getTransactions(TransactionConstants.COLLECTION_TRANSACTION_METADATA)
+        .pipe(takeUntil(this.destroy$))
         .subscribe((data: any) => {
           this.metadata = data;
           this.SpinnerService.stopSpinner();
@@ -89,10 +96,17 @@ export class AddDataRecordsComponent implements OnInit {
   copyAndCreateSheet() {
     if (!this.copySheetURL) return;
     this.SpinnerService.startSpinner()
-    this.sheetService.copySheetFromUrl(this.copySheetURL, this.name).subscribe(() => {
-      this.SpinnerService.stopSpinner();
-      this.notificationService.open(NotificationStyle.TOAST, `${this.name} Google Sheet Created`, NotificationType.SUCCESS);
-    });
+    this.sheetService.copySheetFromUrl(this.copySheetURL, this.name)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.SpinnerService.stopSpinner();
+        this.notificationService.open(NotificationStyle.TOAST, `${this.name} Google Sheet Created`, NotificationType.SUCCESS);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   addRecurringTransaction(transaction: Transaction): void {

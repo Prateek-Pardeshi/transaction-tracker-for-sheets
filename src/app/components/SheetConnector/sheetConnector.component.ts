@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { icons } from '@assets/icons/icons';
 import { SheetURL } from '@assets/Entities/enum';
 
@@ -6,6 +6,7 @@ import { SheetURL } from '@assets/Entities/enum';
   selector: 'app-sheet-connector',
   standalone: false,
   templateUrl: './sheetConnector.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SheetConnectorComponent {
 

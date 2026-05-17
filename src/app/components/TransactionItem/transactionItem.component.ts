@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Transaction } from '@assets/Entities/types';
 import { TransactionType } from '@assets/Entities/enum';
 
@@ -6,6 +6,7 @@ import { TransactionType } from '@assets/Entities/enum';
   selector: 'app-transaction-item',
   standalone: false,
   templateUrl: './transactionItem.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransactionItemComponent {
   @Input() transaction!: Transaction;

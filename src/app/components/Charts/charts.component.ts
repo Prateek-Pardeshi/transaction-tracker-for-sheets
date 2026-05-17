@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Input, ChangeDetectionStrategy } from '@angular/core';
 import { gsap } from 'gsap';
 import { Transaction } from '@assets/Entities/types';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
@@ -11,7 +11,8 @@ if (typeof window !== 'undefined') {
 @Component({
   selector: 'app-charts',
   standalone: false,
-  templateUrl: './charts.component.html'
+  templateUrl: './charts.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartsComponent implements OnInit, AfterViewInit {
   @ViewChild('percentageText') nTxtRef!: ElementRef<HTMLCanvasElement>;

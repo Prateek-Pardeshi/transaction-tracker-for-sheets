@@ -1,11 +1,12 @@
-import { Component, ViewContainerRef, TemplateRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewContainerRef, TemplateRef, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { NotificationStyle } from '@assets/Entities/enum';
 
 @Component({
     selector: 'app-notification',
     standalone: false,
     styleUrls: ['./notification.scss'],
-    templateUrl: './notification.component.html'
+    templateUrl: './notification.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class NotificationComponent {

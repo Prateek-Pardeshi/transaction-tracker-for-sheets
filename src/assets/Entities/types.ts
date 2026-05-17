@@ -22,6 +22,11 @@ export interface StaticObject {
   name: string;
 }
 
+export interface ModelList {
+  code: string;
+  name: string;
+}
+
 export class TransactionMetadata {
   COPY_SHEET_URL : string = "";
   DEFAULT_SHEET_URL : string = "";
@@ -41,4 +46,5 @@ export class TransactionMetadata {
   EXPENSE_CATEGORIES : string[] = [];
   INCOME_CATEGORIES : string[] = [];
   MONTH : StaticObject[] = [];
+  AI_MODELS_LIST : ModelList[] = [];
 }

@@ -1,10 +1,11 @@
-import { Component, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-spinner',
   standalone: false,
   templateUrl: './spinner.component.html',
-  styleUrl: './spinner.component.css'
+  styleUrl: './spinner.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SpinnerComponent {
   @ViewChild('spinnerContainer', { static: true, read: ViewContainerRef })
